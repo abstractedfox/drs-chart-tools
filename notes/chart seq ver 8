@@ -1,0 +1,158 @@
+as this is mostly a study of the chart for small steps from 2020121400, we will consider it a breakdown of sequence version 8
+
+1(a/b) denote single player chart, 2(a/b) denotes versus chart
+
+<data>
+    <seq_version __type="s32">
+        -known values: 3 (steppers), 8 (small steps 2020121400), 9 (chart for ここからよろしく大作戦143)
+
+        <info>
+            <tick>
+                -known values: 480 (small steps 2020121400)
+            <bpm_info>
+                <bpm>
+                    <time>
+                        -known values: 0 ((small steps 2020121400))
+                    <delta_time>
+                        known values: 0 (small steps 2020121400)
+                    <bpm __type="s32">
+                        known values: 10600 (small steps 2020121400)
+                            i assume the first 3 digits are the bpm and the last two are tenths and hundreths of that
+            <measure_info>
+                <measure>
+                    <time>
+                        known values: 0 (small steps 2020121400)
+                    <delta_time>
+                        known values: 0(small steps 2020121400)
+                    the next two tags are <num> and <denom> and i assume these are the fraction representing time signature
+    <sequence_data>
+        known tags:
+            <step>
+                known tags:
+                    <stime_ms>
+                    <etime_ms>
+                        -note: it looks like 'stime_ms' and 'etime_ms' are likely start and end times for hold notes; a brief look suggests they are always the same value for instances of <step> that aren't holds, and etime is always a larger number for ones that are
+                    <stime_dt>
+                    <etime_dt>
+                        -these tags all contain 4 digit values that ascend for later steps in the chart
+                        -presumably 'ms' == milliseconds, 'dt' == delta time
+                        -similar to the *_ms time tags, these seem to always be identical for single notes. for holds, etime_dt is always(?) bigger than stime_dt
+                            -also of note: the difference between the same note's _ms and _dt tags is not identical!
+                        -messing with the timing of these in any direction doesn't seem to do anything immediately apparent; it was also removed in seq ver 9 and was present as far back as steppers (seq ver 3) so these tags may be vestigial
+                    <category>
+                        known values: 0, 1 (small steps 2020121400)
+                            -0: seems to only be used for single steps
+                            -1: seems to only be used for holds
+                    <pos_left>
+                    <pos_right>
+                        -i forget if these each represent two steps at the same time or l/r dimensions of the same step
+                    <kind>
+                        known values: 1, 2, 3, 4 (small steps 2020121400)
+                            -1 is left foot
+                            -2 is right foot
+                            -3 is 'down' and in normal charts, is always full-width (0, 65536), and seems to always have player_id set to 4. it works if player_id is set to 0 but this doesn't seem to be 'proper'
+                            -4 is jump, always full-width (0, 65536), player_id seems to always be 4
+                    <var>
+                        known values: 0 (small steps 2020121400)
+                        experimenting:
+                            1: note was not visible, but still functioned as far as the chart not 'ending' until it had been passed (if it was the last note in the chart)
+                    <player_id>
+                        known values: 0, 1, 4 (both small steps 2020121400)
+                            -seems like 1p charts only use 0 and 4 (based on small steps 1a chart) and 2p charts use 0, 1, and 4 (based on small steps 2b chart)
+                    <long_point> (optional)
+                        known tags:
+                            <point>
+                                    #all of these contain large s32 vals except for point_time which has a large s64 val
+                                <point_time __type="s64">
+                                    -time (from song start) until the hold ends; must be later than the parent <step> tag's stime_ms
+                                <pos_left>
+                                <pos_right>
+                                <pos_lend> (optional value)
+                                <pos_rend> (optional value)
+                        behavior of long points:
+                            -if only point_time, pos_left, and pos_right are used, it will be a normal hold note
+                            -if pos_lend and pos_rend are included, point_time will define the time at which the hold is terminated with a 'swipe' note. both tags will define the position of the slide
+                                -the hold will cease to exist after the swipe unless there are more <point>s
+                                -if there is another <point> with a later point_time than the first <point>, the hold will continue from the swipe denoted by point A until the point_time of point B, where it will treat point B as another swipe. in practice, the pos_left/right of point B seem to always match the lend/rend of the previous point.
+                            -if a hold note terminates for any reason ('swipe' note, or shorter point_time than alloted for) before its etime_ms, it seems to simply cease to exist from that point
+                                -things to test:
+                                    -what happens if the difference between pos_lend and pos_rend aren't the same as the difference between pos_left and pos_right?
+                                    -what happens if the difference between pos_left and pos_right aren't the same as the difference between the parent <step> tag's pos_left and pos_right?
+                                    -what happens if the starting position of a hold is different from the position of the parent <step>?
+                                    -in a chain of swipe notes, is the size of the 'hold' inserted between each 'swipe' defined by the difference between pos_lend and pos_rend?
+                                    -what happens if, in a chain of points in a long_point, the pos_left and pos_right of a nonfirst point are not the same as the ending positions of the previous point?
+
+    <grid_data>
+        known tags:
+            <grid>
+                known tags:
+                    <stime_ms>
+                    <etime_ms>
+                    <stime_dt>
+                    <etime_dt>
+                        -all four of these 'time' tags appear to have similar enumeration characteristics to the ones in <step>
+                        -it seems like these are roughly evenly spaced apart, there is some variance which suggests these may have calculated these from more precise values
+                    <type>
+                        known values: 1, 2 (small steps 2020121400)
+    <rec_data>
+        known tags:
+            <clip id="some value">
+                in (small steps 2020121400) we see this tag twice at the top of rec_data, with 0 and 1 as the id
+                known tags are <stime_ms __type="s64"> and <etime_ms __type="s64">
+            <effect>
+                known tags:
+                    <time __type="s64"> contains 4+digit values
+                    <category>
+                        known value is 1 (small steps 2020121400)
+                    <kind>
+                        known values: 2, 3, 5, 6 (small steps 2020121400)
+                    <val1> <val2> <val3>
+                        all appear to regularly hold small values between -1 and 2 (this was a quick glance so there may be exceptions)
+                    <command __type="str">
+                        known values: "Ntapcs", "Nsldcl1", "Ndwnc1", "Ntaprs", "Nsldrl1", "Ntapls", "Njmpcs" (just 1 in (small steps 2020121400)) and uhh definitely a few more, when i counted down there were 21 tags i hadn't found, do some grep or something later lazy)
+    <motion_data>
+        empty in (small steps 2020121400)
+    <tutorial_data>
+        empty in (small steps 2020121400)
+    <upbeat_data>
+        known tags:
+            <upbeat>
+                <time __type="s64">
+                    similar values to other instances of this tag (small steps 2020121400)
+                <speed __type="s32">
+                    seems to generally contain values in multiples of 200 (small steps 2020121400)
+                <type>
+                    known values: 1, 2 (small steps 2020121400)
+                <kind>
+                    known values: 10, 3, 1, 2, 4, 0, 5(small steps 2020121400)
+                <direct>
+                    known values: 0, 10, 5  (small steps 2020121400)
+                <name>
+                    known vals: "sp3_led_10", "sp3_led_03", "sp3_led_04", "sp3_led_05", "sp3_eff03"
+                        -sp3_eff01 explosion effect (fiery)
+                        -sp3_eff02 explosion effect (explodey)
+                        -sp3_eff03
+                            onscreen 'shake' effect, makes entire play area appear to shake
+                <color>
+                    contains <red> <green> <blue> tags which each appear to contain 8 bit rgb values
+
+
+behaviors:
+    -giving it a chart with no steps causes it to instantly show the 'exc' graphic (for perfect clear) but plays the entire song, so it seems that the stage finished graphic shows up whenever all steps have been exhausted. it also gives one star and 0 pts so i think exc is just triggered by finishing with no greats, goods, or bads
+
+as of this data (mixed 2020121400 and 2022121400) seq ver 8 seems to be all songs from 00001-00086 and 90001-90012 (i think all the 9**** ones are the tutorials). seq ver 9 starts at 00087-00263 and tutorials 90013-90020 (this seems to be the current seq version) so we probably want to be looking at that actually
+
+assumptions:
+-because the steps are defined in terms of number of seconds and delta time from the beginning, changing data/info/bpm_info/bpm/bpm should not change the speed of the chart
+    -results: increasing the bpm doesn't appear to change the speed of the chart
+        -it does appear to affect the speed of background animations and spacing of measure markers
+        -recheck this when we're running at full speed. setting it to 00100 seems to bunch the chart up. setting it to 00001 appears to corrupt the chart
+-if we nuke the existing 'grid' entries and put one every 500 ms up to 2500ms, we should see a measure marker spaced that far apart that line up with notes that are also placed on those values. we will leave delta time values at 0, as we will continue our present assumption that delta time (_dt) values are not used. we will also make the 'type' value alternate 2, 1, 2, 1, 2
+    -results: injecting these values didn't seem to create any measure markers. this and the behavior observed when fucking with bpm and with tick seem to suggest that in the current engine, 'grid' may not be used at all
+        -additional thought: we should actually not make this assumption until we get mon's pad visualizer going + make our own cab led visualizer probably
+
+observations:
+
+
+experiments:
+-write a script that creates a dummy chart using the 'Small Steps' header which does one minute of a pattern of alternating left and right steps every second

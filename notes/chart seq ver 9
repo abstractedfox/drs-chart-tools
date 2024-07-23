@@ -1,0 +1,118 @@
+chart seq ver 9
+
+some questions to ask:
+- if we compare 1a to 2a, how do we see it differentiating players now? is it the same?
+-we see <tick> tags in numerous places which contain zeroes. does the engine alternatively support ticks instead of other time values?
+
+<data>
+    <seq_version>
+        -observed values: 9 (the version concerned here), 8, 3 (not used anywhere in current data)
+    <info>
+        <time_unit>
+            -seems to almost always be 480
+                -we should check that nostalgia song and see if its is divisible by 3
+            -it seems likely that this is the <tick> tag from seq ver 8
+        <end_tick> __type="s32">
+            -seems to indicate the tick upon which the chart is over
+        <bpm_info>
+            <bpm>
+                <tick>
+                    -observed values:
+                        -0 (00263_1a)
+                <bpm>
+                    -values observed are a 5 digit integer where the last 2 digits appear to be tenths and hundreths
+        <measure_info>
+            <measure>
+                <tick>
+                    -observed values:
+                        -0 (00263_1a)
+                <num>
+                    -observed values:
+                        -4 (00263_1a)
+                <denomi>
+                    -observed values:
+                        -4 (00263_1a)
+                -seems likely that <num> and <denomi> are the time signature
+    <sequence_data>
+        <step>
+            <start_tick __type="s32">
+                -most likely indicating number of 'tick's since the beginning of the song where this note appears. seems to replace <stime_ms> from seq ver 8
+            <end_tick __type="s32">
+                -most likely indicating number of 'tick's this step should last. seems to replace <etime_ms>
+                -indicates the length of a hold note or shuffle pattern if it's later than start_tick. for single notes, it's always the same as start_tick
+            <left_pos>
+            <right_pos>
+                -left_pos and right_pos are renamed pos_left and pos_right (why) and appear to indicate the width of a note. range is 0-65536
+            <kind>
+                -known values:
+                    -1 left foot step
+                    -2 right foot step
+                    -3 down
+                    -4 jump
+            <player_id>
+                -known values: 0, 1, 4
+                -0 and 1 indicate players 1 and 2 respectively, with '1' only used in two player charts.
+                -4 appears to only and always be used for jumps and downs
+                -interesting that 2 and 3 were left unused, wonder if that's a vestige from otoiroha
+            <long_point>
+                -no longer optional, however, for single notes, it is written as <long_point/> to close it immediately
+                -terminating behavior (behavior that ends a hold note) is observed to be:
+                    -a hold will end on its own at the <tick> time of the last <point> in this tag
+                    -a hold will terminate into a 'swipe' if left_end_pos and right_end_pos are defined
+                -for clarity: 'swipe' notes are not unique notes in of themselves, they are part of a hold
+                <point>
+                    <tick>
+                        -seemingly same behavior as <point> in seq ver 8's <long_point>, indicates the time (now in ticks) at which a hold segment ends in its terminating behavior
+
+                    <left_pos>
+                    <right_pos>
+                        -in the first <point> in <long_point>, these appear to always be the same coordinates as the parent <step>'s left and right pos
+                        -if the <point> before this <point> was a swipe, these are identical to the coordinates of the last <point>'s end_pos tags
+                        -in subsequent points, these indicate a position for the 'hold' to move to, creating a slide
+                            -in other words, a slide is defined by:
+                                -an initial <point> (point A) in <long_point> where its <tick> indicates the time at which the first hold segment terminates, and the slide starts
+                                -a next <point> (point B) where its <tick> indicates the time at which the slide segment ends, and its position coordinates indicating the position where it ends
+                        -unclear what happens if any of the apparent coordinate conventions (ie the first <point> having the same coordinates as its parent <step>) are broken
+
+                    <left_end_pos> (optional)
+                    <right_end_pos> (optional)
+                        -if these are defined, this <point>'s <tick> will indicate the position at which to terminate the current hold segment with a 'swipe'
+                        -these define the coordinates of the swipe note
+                        -it seems to be conventional for the difference of these two tags to be the same as the size of the parent <step> (the difference of its right and left pos)
+                        -(assumed based on behavior observed in seq ver 8) if there are no more <point> tags after this one, the hold terminates after this swipe
+    <extend_data>
+        -it looks like this replaced <upbeat_data> from ver 8
+        <extend>
+            <type __type="str">
+                observed values:
+                    -Vfx
+            <tick __type="s32">
+            <param>
+                <time __type="s32">
+                    -this value appears to increase as we look at <extend> tags down the chart, so it likely counts from chart start (but what unit is this, ticks? seconds?)
+                    -this is also observed (in 00263_1a) to often be less than the parent <extend> tag's tick value
+                <kind __type="str">
+                    observed values:
+                        -Background
+                        -OverEffect
+                            -in 00263_1a this one is only used where layer_name == sp3_eff*
+                <layer_name __type="str">
+                    -this appears to take values that used to appear in <upbeat_data><upbeat><name> (see seq ver 8 for more on those)
+                <id __type="s32">
+                    observed values: 9, 2, 1, 4, 11, 10, 3, 5
+                <lane __type="s32">
+                    observed values: 0, 1, 3
+                <speed __type="s32">
+                    observed values: 4, 2
+                    in seq ver 8, the speed tag in <upbeat_data><upbeat> was three digits (200, 400), did this value become less granular?
+                <color>
+                    <red>
+                    <green>
+                    <blue>
+                        -these are all s32 but the values seem to be 8bit ints (0-255)
+
+
+
+assumptions to test/verify/disprove:
+    -the game calculates timing based on the given bpm, and the value defined in time_unit is used to represent either a single beat or a full measure (need to test)
+        -test: if we inject a 60bpm song

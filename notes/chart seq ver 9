@@ -12,6 +12,7 @@ some questions to ask:
             -seems to almost always be 480
                 -we should check that nostalgia song and see if its is divisible by 3
             -it seems likely that this is the <tick> tag from seq ver 8
+            -based on observations of a few charts (see below) this value seems to always equal the number of ticks elapsed by a whole beat, so our running assumption will be that this sets that value
         <end_tick> __type="s32">
             -seems to indicate the tick upon which the chart is over
         <bpm_info>
@@ -22,17 +23,20 @@ some questions to ask:
                 <bpm>
                     -values observed are a 5 digit integer where the last 2 digits appear to be tenths and hundreths
         <measure_info>
-            <measure>
+            <measure> (can be multiple)
                 <tick>
-                    -observed values:
-                        -0 (00263_1a)
+                    -indicates the tick at which the time signature defined here begins
+                    -first one is always at 0
                 <num>
+                    -time signature numerator
                     -observed values:
+                        -6 (00161_1a)
+                        -5 (00157_1a)
                         -4 (00263_1a)
                 <denomi>
+                    -time signature denominator
                     -observed values:
-                        -4 (00263_1a)
-                -seems likely that <num> and <denomi> are the time signature
+                        -4 (00263_1a, 00161_1a)
     <sequence_data>
         <step>
             <start_tick __type="s32">
@@ -111,8 +115,28 @@ some questions to ask:
                     <blue>
                         -these are all s32 but the values seem to be 8bit ints (0-255)
 
+observations:
+tick timing:
+    -when we look at ここからよろしくだいさくせん１４３ on youtube, there are eight beats (that we can hear) before the first note (starts on the 1st beat of the 3rd measure). this note starts at tick 5760 and the song has a time_unit of 480 and bpm of 18400.
+    -let's get some more observations like this actually, maybe with songs that have less weird beginnings
+        -vamos a bailar - bpm 13800, time_unit 480, first note 1920. in game, the first note appears to be on the first beat of the second measure (indicating 480 ticks per beat)
+            -actually the first four notes (technically first 8 but two of them are jumps consisting of two notes each) are all on fourths and are all 480 apart from each other so this seems to really suggest that time_unit is the number of ticks that a single beat will consist of
+        -Afterimage d'automne - bpm 23200, time_unit 480, first note at 2880
+            -i want to note that the first audible measure here (beginning on the 1st note of the chart) has steps on the 1st and 4th beats and the second measure has a note on each beat
+            -furthermore, the difference between these notes is three units of 480, which tracks
+            -and further furthermore, each of the six notes in the next measure are 480 ticks apart
+    -based on these observations, it seems that the value indicated by <info><time_unit> is equal to the number of ticks elapsed in a single beat
 
+things to specifically seek out:
+    -songs that have videos, how do they work?
+    -songs that otherwise have unique backgrounds (see vamos a bailar) how do they work?
+    -unique color schemes (such as for spark festival) are probably not set by the chart, but how they are they set
+    -some songs (like ここからよろしく大作戦143 so uh lol maybe we should have made sure the random song we picked didn't demonstrate outlier behavior before we analyzed it) have a differently designed gameplay screen, is this implicit to songs with background videos or is it set separately in the chart?
+
+questions:
+    -<bpm> tags have a <tick> value the same way <measure> tags do. can we define more than one if a song changes bpm?
 
 assumptions to test/verify/disprove:
     -the game calculates timing based on the given bpm, and the value defined in time_unit is used to represent either a single beat or a full measure (need to test)
-        -test: if we inject a 60bpm song
+        -test: if we make a chart that is 60bpm, set tick to 480, and put a note every 480 ticks, there willbe one note every second
+        -test: if we change time_unit of an existing chart to twice its value, the chart should play twice as fast

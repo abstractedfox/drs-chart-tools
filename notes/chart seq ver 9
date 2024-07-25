@@ -1,5 +1,14 @@
 chart seq ver 9
 
+some reference charts:
+    -songs with weird time signatures:
+        -Afterimage d'automne (00161)
+        -最小三倍完全数 (00157)
+    -songs with videos:
+        -ここからよろしく大作戦143(00263)
+    -seq ver 9 with no background:
+        -x-ray binary (00246)
+
 some questions to ask:
 - if we compare 1a to 2a, how do we see it differentiating players now? is it the same?
 -we see <tick> tags in numerous places which contain zeroes. does the engine alternatively support ticks instead of other time values?
@@ -10,9 +19,10 @@ some questions to ask:
     <info>
         <time_unit>
             -seems to almost always be 480
-                -we should check that nostalgia song and see if its is divisible by 3
+                -we should check that nostalgia song and see if its is divisible by 3 (nope, it also uses 480!)
             -it seems likely that this is the <tick> tag from seq ver 8
             -based on observations of a few charts (see below) this value seems to always equal the number of ticks elapsed by a whole beat, so our running assumption will be that this sets that value
+            -it also seems like this set to 480 even on songs that have unusual time signatures
         <end_tick> __type="s32">
             -seems to indicate the tick upon which the chart is over
         <bpm_info>
@@ -98,8 +108,9 @@ some questions to ask:
                 <kind __type="str">
                     observed values:
                         -Background
+                            -seems like this one is always used when the layer_name is sp3_led_*
                         -OverEffect
-                            -in 00263_1a this one is only used where layer_name == sp3_eff*
+                            -in at least 00263_1a this one is only used where layer_name == sp3_eff*
                 <layer_name __type="str">
                     -this appears to take values that used to appear in <upbeat_data><upbeat><name> (see seq ver 8 for more on those)
                 <id __type="s32">
@@ -114,6 +125,18 @@ some questions to ask:
                     <green>
                     <blue>
                         -these are all s32 but the values seem to be 8bit ints (0-255)
+    <rec_data>
+        <clip> (seems like it only appears once)
+            <start_time>
+            <end_time>
+                -in at least 00246_1a, this is set to a lower number than the chart's end_tick
+            -my guess is that these are expressed in ticks
+        <effect> (can be multiple)
+            <tick>
+            <time>
+                -my guess is that this is the duration of the effect
+            <command __type="str">
+                -This is a range of values that seem to all start with "N" and have six letters (all the others seem to always be lowercase). searching for these doesn't turn anything up, so they seem to be original to dancerush. there is also a lot of variance in these values. perhaps each letter represents an individual effect and they are mixed at runtime?
 
 observations:
 tick timing:
@@ -130,6 +153,8 @@ tick timing:
 things to specifically seek out:
     -songs that have videos, how do they work?
     -songs that otherwise have unique backgrounds (see vamos a bailar) how do they work?
+        -furthermore, let's collect some songs i notice that have non-default backgrounds (we are assuming the disco ball is the default) in case we need to compare them more deeply later
+            -CONNECT (has the hexagon background)
     -unique color schemes (such as for spark festival) are probably not set by the chart, but how they are they set
     -some songs (like ここからよろしく大作戦143 so uh lol maybe we should have made sure the random song we picked didn't demonstrate outlier behavior before we analyzed it) have a differently designed gameplay screen, is this implicit to songs with background videos or is it set separately in the chart?
 

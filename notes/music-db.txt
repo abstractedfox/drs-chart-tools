@@ -1,0 +1,164 @@
+comparing both music-info-base.xml and music-info-offline.xml
+
+im fairly certain most of the data in the info tag is not actually used in game anywhere lol
+
+<mdb output_level="#">
+    -output_level is 0 in music-info-offline and 1 in music-info-base
+    <music id="#"> (many; one for each song.)
+        -id == the ID of the song
+        <info>
+            <title_name>
+                -song name
+            <title_yominaga>
+                -song name in skinny katakana if japanese
+                -song name in all lowercase with no spaces if english
+            <artist_name>
+                -that
+            <artist_yominaga>
+                -seems to also be skinny katakana for japanese
+                -all lowercase no-spaces shortening if english (ie for song 200, BEMANI Sound Team "DJ TOTTO" becomes djtotto)
+            <bpm_max>
+            <bpm_min>
+                -both of the bpm ones use the same 5 digit bpm as the charts
+            <distribution_date __type="u32">
+                YYYYMMDD
+            <volume __type="u16">
+                -default seems to be 100 (based on a lot of them being 100), a lot of them are 127 but don't be fooled, some are higher
+            <bg_no __type="u16">
+                observed values: 0 (most common), 1, 2 (only 2 songs in 2020121400, and one of them is vamos a bailar!)
+            <region __type="str">
+                string consisting of a letter for each region that this song should appear in (assuming)
+                examples: JUAKYC, JUAKY
+            <limitation_type __type="u8">
+                observed values:
+                    #all examples in 'base' music dbs are 0
+                    -3
+                        -in music-info-offline.xml from 2022121400, this value is 3 for small steps and a bunch of tutorials
+                    -2
+                        -in the offline db, this is used on all the songs that are visible but locked when we run on the stubbed server
+                    -0
+            <price __type="s32">
+                -assuming this is the price in stars to unlock
+            <!--genre = #-->
+                -yes, this comment is in all of them, and appears to be populated uniquely to each song
+                -because i wonder if there are patterns here, let's also observe the actual contents of the not-commented <genre> tag with these
+                -observed values:
+                    -LICENSE,EDM,Spinnin' Records
+                        -genre tag == 49
+                    -LICENSE,EDM
+                        -genre tag == 17
+                    -LICENSE,おすすめ,EDM
+                        -genre tag == 21
+                    -BEMANI
+                        -genre tag == 64
+                    -EDM,BEMANI
+                        -genre tag == 80
+                    -LICENSE,POPS
+                        -genre tag == 9
+                    -LICENSE,EDM,BEMANI
+                        -genre tag == 81
+                    -LICENSE,おすすめ,POPS
+                        -genre tag == 13
+                    -LICENSE,おすすめ,POPS,EDM
+                        -genre tag == 29
+                    -レッスン
+                        -genre tag == 2
+                -ok so yes, these are all unique to each other, we see the same genre tag numeric value wherever we see these comments
+                -judging by this, it seems like:
+                    -00000001 (1) == license
+                    -00000010 (2) == lesson
+                    -00000100 (4) == osusume
+                    -00001000 (8) == pops
+                    -00010000 (16) == edm
+                    -00100000 (32) == spinnin records
+                    -01000000 (64) == bemani
+            <genre __type="u32">
+                observed values: 9, 81, 13, 29, 64, 17, 80, 21
+            <!--play_video_flags = -->
+                -yes, another comment that's in every song, however in this case it seems to be static
+            <play_video_flags __type="u32">
+                seems to always be 0 (observed in 2020121400 and 2022121400)
+            <is_fixed __type="u8">
+                seems to always be 1 (observed in 2020121400 and 2022121400)
+            <version __type="u8">
+                seems to always be 1 (observed in 2020121400 and 2022121400)
+            <demo_pri __type="u8">
+                observed values:
+                    0 (nearly the all of them are 0)
+                    1 (only used on 'trigger')
+                    20 (only used on gradius remix)
+                    30 (only used on crackin martin garrix edit)
+                    40 (only used on spacecats)
+                    50 (only used on butterfly (the kors k one))
+                    60 (only used on perfect human)
+                    70 (only used on boombayah)
+                    80 (only used on REALLY REALLY japanese version)
+                    90 (only used on what do you mean)
+                    100 (only used on break free)
+                    120 (only used on 紅蓮華)
+                    255 (only used on BANG BANG BANG)
+                -my guess is that this tag is 'demo priority' for choosing which songs to show in the gameplay demo during the attract loop
+            <license>
+                -Licensing information
+                -can be empty (formatted as <license/>)
+            <color1 __type="u32">
+                -primary color
+            <color2 __type="u32">
+                -secondary color
+            <color3 __type="u32">
+                -highlight color?
+            #color tags furthermore:
+                -all of the color tags contain hexadecimal values starting with 0x
+                -first two are the colors used for striping behind the song name & for part of the background during music select
+                -unclear where the last color is used (perhaps it's for the LEDs?)
+                    -there's a uhh thingy of what looks like additive color that flies through part of the background on song select after the song is first hovered over, maybe that??
+                -format is that the last three bytes are used for the colors in order of red, green, then blue. it's unclear what the first two do, they seem to always be FF
+
+        <difficulty>
+            <fumen_**> (one for each chart)
+                -the next 2 characters are the 1a, 2b, 2a, 2b that denote single player hard, single player easy, versus hard, versus easy
+            <difnum __type-"u8">
+                -difficulty rating
+            <playable __type="u8">
+                -in music-info-base, these are all 0
+                -in music-info-offline, some of them are 1
+        <conditions> (optional, closed as <conditions/> if no contents)
+            -ah, this seems to be the unlock conditions
+            <appearance> (can be multiple)
+                -follows same-looking tag structure as discount, seems that 'display_text' tags are all left empty by convention
+            <discovery> (can be multiple)
+                -follows same-looking tag structure as discount
+            <discount> (can be multiple)
+                <condition_type __type="u8">
+                    observed values: 0, 1, 4, 5, 6 (another bitfield?)
+                <display_text>
+                    <ja>
+                    <en>
+                    <ko>
+                    <zht>
+                    <zhs>
+                    -it's kind of funny to see them fill all of these with japanese text lmao
+                    -here's an example of the formatting:
+                        [music]26[/music] をアンロックする。
+                <condition_params>
+                    <operation_method_type __type="u8">
+                        -appears to always be 0
+                    <target_value __type="s32">
+                        -observed values: many
+                        -tl;dr: for some unlock missions, this will be a value that is contingent on competing the mission (ie a score to reach)
+                        -if we look at "Go Down" as an example, mission text says to score more than 2100 points, and this value is set to 2100 there, so it seems to be the value that the condition relies on in some cases
+                        -however, a subsequent discount says to clear a song with 92 points or more, and in that one, this value is just 1, with 92 showing up in a precondition tag under <preconditions>. we should probably do a separate document for analyzing how unlock missions work
+                    <counter_index __type="s32">
+                        observed values: 1, 2, 3, 4, 5, 6, 7, 8 (only one song ITS GO DOWN LOLLLLLL)
+                    <preconditions> (optional, doesn't exist if unused)
+                        <precondition>
+                            <type __type="u8">
+                                observed values: 0, 1, 6
+                            <operator __type="u8">
+                                observed values: 0, 4
+                            <target_value __type"s32"
+                                -this contains other values that the unlock mission is contingent on. for example, in go down's "score 92 points or more on (music 345)", one is 345 and one is 92 (and another one is 2, whatever that means)
+
+further info:
+    -for a song to be visible when offline, it has to have its <info><limitation_type>set to 2 to be visible and locked, or 3 to be unlocked unlocked, and per-chart it requires that chart's <playable> tag to be set to 1 (if you set an easy chart to 0 and hard chart to 1, the song will not even display on easy)
+    -db is only read at game boot as far as i can tell, modifications will not show until the game is restarted

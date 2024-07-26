@@ -2,6 +2,8 @@ comparing both music-info-base.xml and music-info-offline.xml
 
 im fairly certain most of the data in the info tag is not actually used in game anywhere lol
 
+thing of interest: 00246_2b..xml has an extra dot, did we do something silly or is it actually like that
+
 <mdb output_level="#">
     -output_level is 0 in music-info-offline and 1 in music-info-base
     <music id="#"> (many; one for each song.)
@@ -113,6 +115,7 @@ im fairly certain most of the data in the info tag is not actually used in game 
                 -unclear where the last color is used (perhaps it's for the LEDs?)
                     -there's a uhh thingy of what looks like additive color that flies through part of the background on song select after the song is first hovered over, maybe that??
                 -format is that the last three bytes are used for the colors in order of red, green, then blue. it's unclear what the first two do, they seem to always be FF
+                -as far as it looks to me, it doesn't seem like these affect any colors during gameplay, just in the menu
 
         <difficulty>
             <fumen_**> (one for each chart)

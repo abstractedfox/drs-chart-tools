@@ -28,6 +28,10 @@ thing of interest: 00246_2b..xml has an extra dot, did we do something silly or 
                 -default seems to be 100 (based on a lot of them being 100), a lot of them are 127 but don't be fooled, some are higher
             <bg_no __type="u16">
                 observed values: 0 (most common), 1, 2 (only 2 songs in 2020121400, and one of them is vamos a bailar!)
+                0: standard disco ball bg
+                1: darker colors + zooming hexagons
+                2: bright orange + crowns
+                -disco ball appears to be the fallback if an invalid value is entered (or 3 is just a duplicate of disco ball)
             <region __type="str">
                 string consisting of a letter for each region that this song should appear in (assuming)
                 examples: JUAKYC, JUAKY
@@ -69,7 +73,8 @@ thing of interest: 00246_2b..xml has an extra dot, did we do something silly or 
                 -judging by this, it seems like:
                     -00000001 (1) == license
                     -00000010 (2) == lesson
-                    -00000100 (4) == osusume
+                        -if you put a song in 'lesson', it will not appear anywhere else even if it has other genres
+                    -00000100 (4) == osusume (maps to the easy folder)
                     -00001000 (8) == pops
                     -00010000 (16) == edm
                     -00100000 (32) == spinnin records
@@ -165,3 +170,82 @@ thing of interest: 00246_2b..xml has an extra dot, did we do something silly or 
 further info:
     -for a song to be visible when offline, it has to have its <info><limitation_type>set to 2 to be visible and locked, or 3 to be unlocked unlocked, and per-chart it requires that chart's <playable> tag to be set to 1 (if you set an easy chart to 0 and hard chart to 1, the song will not even display on easy)
     -db is only read at game boot as far as i can tell, modifications will not show until the game is restarted
+    -if the db is malformed, no categories/folders will show (when logged out at least, haven't tested otherwies). if you try to press start anyway, you will see 'small steps' in the lesson folder as the only song, so it seems the game will always make small steps available
+
+file/folder structure (per song):
+    #using 00216 (about right) and 00246 (x-ray binary) as primary examples
+    #we will refer to the song's five digit ID as <songID>
+    -ttat_<songID>_s.png (always)
+        -centered text of song's title and artist
+        -white with black drop shadow (solid, no blur), transparent bg
+        -190x48
+    -ttat_<songID>_b.png (always)
+        -same graphic as above
+        -900x200
+    -tt_<songID>.png (always)
+        -left justified text of the song title only
+        -no layer styles. transparent bg
+        -800x100
+    -lc_<songID>.png (always)
+        -text of licensing info (if applicable)
+        -this still exists as an empty png if none
+        -transparent
+        -400x128
+    -jk_<songID>_[s, m, b] (always)
+        -song jacket
+        -last letter is for the small, medium, and big sizes respectively
+        -126x126, 168x168, 400x400
+    -at_<songID>.png (always)
+        -artist name
+        -left justified, white text, no layer styles
+    -<songID>pre.s3p (sometimes; used on old and new songs (as old as 00002))
+        -unclear, may be the song's menu preview
+    -<songID>clip[number].m4a
+        -seems like [number == 1] is full audio of the song
+        -on some older songs, [number == 0] would be the song's preview
+        -what is this actually used for?
+    -<songID>.s3p
+        -the actual audio that plays during gameplay
+        -song will not start if this is missing (softlocks)
+    -additional info:
+        -tutorials show that when different graphics are used per language, they follow a format like this:
+            -ttat_90018_en_s.png
+            -does this need to be otherwise triggered or will it automatically show different graphics per language if they exist?"
+            -early songs used .2dx, so the engine does still support this
+        -s3p header contains some strings:
+            -IsVBR
+            -DeviceConformanceTemplate
+            -WM/WMADRCPeakReference
+            -WM/WMADRCPeakTarget
+            -WM/WMADRCAverageReference
+            -These are for "windows media format 11 sdk"
+            -oh word mon has already figured these out: https://github.com/mon/s3p_extract/tree/master
+                -it's referenced at /torrents.php?id=16987 that these are wma's in a container
+
+-s3p in more detail:
+    -these can contain multiple files (see /data/sound/se_surround.s3p as an example)
+    -header consists of "S3P0" followed by a 32bit int indicating the number of entries
+    -this is then followed by ((int32)each entry's offset, (int32)each entry's length) for each entry that exists
+    -it seems that each individual song then has a header:
+        -S3V0 (magic number)
+        -(int32)'filestart' (offset from The Beginning Of This s3v0 where the music file starts)
+            -in practice this seems to always be 0x20, for some reason they leave 0x10 of usually-nothing before the start of the music file
+        -mon's code says this is "actually 64 bytes but we don't care about the other fields (yet!)" and certainly enough, there are 32 more bytes after this stuff that contain uhh something
+    -the wmas seem to be vbr, 44.1khz
+
+so to repack:
+    -initialize the header with S3P0 and an int32 of the number of songs we will add
+    -allocate (sizeof(entry struct) * number of songs) of space after the header
+    -for every file that exists:
+        -set ((0 + sizeof(header) + (sizeof(entry struct) * i)) -> offset) to the current size of the outfile + 1
+        -append a s3v0 struct to the output file (btw we have to modify the existing one to account for the last 32 bits)
+        -append the wma audio to the outfile
+
+
+things we want to find out about the file/folder structure:
+    -"running man edition" songs (looking at 00242) do not contain unique music data, how does it know where to find it?
+
+
+testing some things:
+    -if we put dummy values into title_name, title_yomigana, artist_name, artist_yomigana, bpm_*, distribution_date, do we notice anything in-game anywhere
+        -no

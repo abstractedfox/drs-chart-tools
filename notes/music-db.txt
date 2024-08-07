@@ -233,6 +233,7 @@ file/folder structure (per song):
         -mon's code says this is "actually 64 bytes but we don't care about the other fields (yet!)" and certainly enough, there are 32 more bytes after this stuff that contain uhh something
     -the wmas seem to be vbr, 44.1khz
 
+
 so to repack:
     -initialize the header with S3P0 and an int32 of the number of songs we will add
     -allocate (sizeof(entry struct) * number of songs) of space after the header

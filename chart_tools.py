@@ -4,7 +4,6 @@ SEQ_VER = 9
 
 #for what i think is simplicity reasons, we will deal with everything as xml structures (via ElementTree) since that is how everything starts and ends
 
-
 class XMLbpm:
     def __init__(self, bpmTag: xml.etree.ElementTree.Element):
         self.bpmElement = bpmTag
@@ -214,3 +213,6 @@ class sequence_data:
             i += 1
             if i == key:
                 return XMLstep(step)
+
+def createEmptyChart():
+    pass

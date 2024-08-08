@@ -30,35 +30,6 @@ class XMLSong:
     def __init__(self, musicTag: xml.etree.ElementTree.Element):
         self.musicTagElement = musicTag
 
-        """
-        self._title_name = musicTag.find("info").find("title_name").text
-        self._title_yomigana = musicTag.find("info").find("title_yomigana").text
-        self._artist_name = musicTag.find("info").find("artist_name").text
-        self._artist_yomigana = musicTag.find("info").find("artist_yomigana").text
-        self._bpm_max = musicTag.find("info").find("bpm_max").text
-        self._bpm_min = musicTag.find("info").find("bpm_min").text
-        self._distribution_date = musicTag.find("info").find("distribution_date").text
-        self._volume = musicTag.find("info").find("volume").text
-        self._bg_no = musicTag.find("info").find("bg_no").text
-        self._region = musicTag.find("info").find("region").text
-        self._limitation_type = musicTag.find("info").find("limitation_type").text
-        self._price = musicTag.find("info").find("price").text
-        self._genre = musicTag.find("info").find("genre").text
-        self._play_video_flags = musicTag.find("info").find("play_video_flags").text
-        self._is_fixed = musicTag.find("info").find("is_fixed").text
-        self._version = musicTag.find("info").find("version").text
-        self._demo_pri = musicTag.find("info").find("demo_pri").text
-        self._license = musicTag.find("info").find("license").text
-        self._color1 = musicTag.find("info").find("color1").text
-        self._color1 = musicTag.find("info").find("color2").text
-        self._color3 = musicTag.find("info").find("color3").text
-
-        self._singleEasy = None
-        self._singleHard = None
-        self._versusEasy = None
-        self._versusHard = None
-        """
-
     @property
     def title_name(self):
         return self.musicTagElement.find("info").find("title_name").text
@@ -264,8 +235,6 @@ def appendSong(rootTag: xml.etree.ElementTree.Element, songToAppend: xml.etree.E
 
 #Create a <music> with no data filled in. Returns an ElementTree.Element instance of the new <music>
 def createEmptySongEntry(rootTag: xml.etree.ElementTree.Element):
-    #newSong = xml.etree.ElementTree.SubElement(rootTag, "music", {"id": str(getLastID(rootTag) + 1)})
-
     newSong = xml.etree.ElementTree.Element("music", {"id": "-1"})
 
     infoTag = xml.etree.ElementTree.SubElement(newSong, "info")

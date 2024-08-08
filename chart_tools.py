@@ -202,6 +202,7 @@ class XMLstep:
     def player_id(self, value):
         self.stepTagElement.find("player_id").text = value
 
+
 class sequence_data:
     def __init__(self, sequenceDataTag: xml.etree.ElementTree.Element):
         self.sequenceDataElement = sequenceDataTag
@@ -214,5 +215,37 @@ class sequence_data:
             if i == key:
                 return XMLstep(step)
 
-def createEmptyChart():
-    pass
+
+def createEmptyChartXML():
+    newChart = xml.etree.ElementTree.Element("data")
+
+    #We'll set this implicitly as we presently only handle sequence version 9
+    seq_version = xml.etree.ElementTree.SubElement(newChart, "seq_version", {"__type": "s32"})
+    seq_version.text = "9"
+
+    infoTag = xml.etree.ElementTree.SubElement(newChart, "info")
+    xml.etree.ElementTree.SubElement(infoTag, "time_unit", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(infoTag, "end_tick", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(infoTag, "bpm_info")
+    xml.etree.ElementTree.SubElement(infoTag, "measure_info")
+
+    sequenceDataTag = xml.etree.ElementTree.SubElement(newChart, "info")
+
+    extendDataTag = xml.etree.ElementTree.SubElement(newChart, "extend_data")
+
+    recDataTag = xml.etree.ElementTree.SubElement(newChart, "rec_data")
+
+    return newChart
+
+
+def createEmptyStepXML():
+    newStep = xml.etree.ElementTree.Element("step")
+
+    xml.etree.ElementTree.SubElement(newStep, "start_tick", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(newStep, "end_tick", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(newStep, "left_pos", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(newStep, "right_pos", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(newStep, "kind", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(newStep, "player_id", {"__type": "s32"})
+
+    xml.etree.ElementTree.SubElement(newStep, "long_point")

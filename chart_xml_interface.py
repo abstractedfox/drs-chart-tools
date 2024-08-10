@@ -229,6 +229,11 @@ class sequenceDataXML:
     def append(self, stepTag: XMLstep):
         self.sequenceDataElement.append(stepTag.stepTagElement)
 
+    def remove(self, stepTag: XMLstep):
+        if stepTag.bpmElement in self.sequenceDataElement.items():
+            self.sequenceDataElement.remove(stepTag)
+
+
 class colorTagXML:
     def __init__(self, colorTag: xml.etree.ElementTree.Element):
         self.colorTag = colorTag

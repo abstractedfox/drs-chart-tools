@@ -25,7 +25,7 @@ some questions to ask:
             -it also seems like this set to 480 even on songs that have unusual time signatures
         <end_tick> __type="s32">
             -seems to indicate the tick upon which the chart is over
-            -however in practice, this seems to have no effect, the chart appears to end at the last step no matter what this is set to
+            -however in practice, this seems to have no effect, the chart appears to end on the last step no matter what this is set to
         <bpm_info>
             <bpm>
                 <tick>

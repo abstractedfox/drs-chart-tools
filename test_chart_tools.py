@@ -1,6 +1,7 @@
 from chart_tools import *
 import xml.etree.ElementTree
 import sys
+import unittest
 
 #note to self: make sure we test whether len() works on the bpmInfo class implicitly when you overload []
 
@@ -26,20 +27,7 @@ def testXMLInterface():
     print("step 0 kind: " + sequenceTest.sequence_data[0].kind)
     print("step 0 player_id: " + sequenceTest.sequence_data[0].player_id)
 
-
-def testChartTools():
-    testChart = Chart(endTick = beatsToTicks(20, 480))
-
-    testChart.addBPM(BPM(bpm = 121), 0)
-
-    noteSize = sizeUnit(int(65536 / 4))
-
-    for i in range(8, 100):
-        testChart.addNote(noteSize, getPosition(noteSize, (65536 / 4) + ((i % 2) * (65536 / 4))), i, PlayerID.PLAYER1)
-
-    testChart.save("testchart-endtickearly.xml")
-
-def testChartToolsEndTickLate():
+def makeDummyChart():
     testChart = Chart(endTick = beatsToTicks(120, 480))
 
     testChart.addBPM(BPM(bpm = 121), 0)
@@ -49,7 +37,16 @@ def testChartToolsEndTickLate():
     for i in range(8, 100):
         testChart.addNote(noteSize, getPosition(noteSize, (65536 / 4) + ((i % 2) * (65536 / 4))), i, PlayerID.PLAYER1)
 
-    testChart.save("testchart-endticklate.xml")
+    return testChart
 
-testChartTools()
-testChartToolsEndTickLate()
+def generateTestChart():
+    testChart = makeDummyChart()
+
+    testChart.save("testchart.xml")
+
+
+class TestChartXMLInterface(unittest.TestCase):
+    def testChartXMLInterface():
+        pass
+
+generateTestChart()

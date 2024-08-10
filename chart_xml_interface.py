@@ -12,17 +12,17 @@ class XMLbpm:
 
     @property
     def tick(self):
-        return self.bpmElement.find("tick").text
+        return int(self.bpmElement.find("tick").text)
     @tick.setter
     def tick(self, value):
-        self.bpmElement.find("tick").text = value
+        self.bpmElement.find("tick").text = str(value)
 
     @property
     def bpm(self):
-        return self.bpmElement.find("bpm").text
+        return int(self.bpmElement.find("bpm").text)
     @bpm.setter
     def bpm(self, value):
-        self.bpmElement.find("bpm").text = value
+        self.bpmElement.find("bpm").text = str(value)
 
 #Since this tag does nothing but contain <bpm> tags, we're essentially just going to have it be a container class that you access with array indexing
 class bpmInfo:
@@ -39,10 +39,10 @@ class bpmInfo:
 
         return None
 
-    def append(newBPM: XMLbpm):
-        self.bpmInfoElement.append(XMLbpm)
+    def append(self, newBPM: XMLbpm):
+        self.bpmInfoElement.append(newBPM.bpmElement)
 
-    def removeAtIndex(index: int):
+    def removeAtIndex(self, index: int):
         self.bpmInfoElement.remove(self[index])
 
 
@@ -52,24 +52,24 @@ class XMLmeasure:
 
     @property
     def tick(self):
-        return self.measureElement.find("tick").text
+        return int(self.measureElement.find("tick").text)
     @tick.setter
     def tick(self, value):
-        self.measureElement.find("tick").text = value
+        self.measureElement.find("tick").text = str(value)
 
     @property
     def num(self):
-        return self.measureElement.find("num").text
+        return int(self.measureElement.find("num").text)
     @num.setter
     def num(self, value):
-        self.measureElement.find("num").text = value
+        self.measureElement.find("num").text = str(value)
 
     @property
     def denomi(self):
-        return self.measureElement.find("denomi").text
+        return int(self.measureElement.find("denomi").text)
     @denomi.setter
     def denomi(self, value):
-        self.measureElement.find("denomi").text = value
+        self.measureElement.find("denomi").text = str(value)
 
 class measureInfo:
     def __init__(self, measureInfoRoot: xml.etree.ElementTree.Element):
@@ -85,6 +85,9 @@ class measureInfo:
 
         return None
 
+    def append(self, newMeasure: XMLmeasure):
+        self.measureInfoElement.append(newMeasure.measureElement)
+
 #The <info> tag, ie the chart header
 class chartInfo:
     def __init__(self, chartRoot: xml.etree.ElementTree.Element):
@@ -92,17 +95,17 @@ class chartInfo:
 
     @property
     def time_unit(self):
-        return self.infoTagElement.find("time_unit").text
+        return int(self.infoTagElement.find("time_unit").text)
     @time_unit.setter
     def time_unit(self, value):
-        self.infoTagElement.find("time_unit").text = value
+        self.infoTagElement.find("time_unit").text = str(value)
 
     @property
     def end_tick(self):
-        return self.infoTagElement.find("end_tick").text
+        return int(self.infoTagElement.find("end_tick").text)
     @end_tick.setter
     def end_tick(self, value):
-        self.infoTagElement.find("end_tick").text = value
+        self.infoTagElement.find("end_tick").text = str(value)
 
     @property
     def bpm_info(self):
@@ -119,47 +122,47 @@ class XMLpoint:
 
     @property
     def tick(self):
-        return self.stepTagElement.find("tick").text
+        return int(self.stepTagElement.find("tick").text)
     @tick.setter
     def tick(self, value):
-        self.stepTagElement.find("tick").text = value
+        self.stepTagElement.find("tick").text = str(value)
 
     @property
     def start_tick(self):
-        return self.stepTagElement.find("start_tick").text
+        return int(self.stepTagElement.find("start_tick").text)
     @start_tick.setter
     def start_tick(self, value):
-        self.stepTagElement.find("start_tick").text = value
+        self.stepTagElement.find("start_tick").text = str(value)
 
     @property
     def left_pos(self):
-        return self.stepTagElement.find("left_pos").text
+        return int(self.stepTagElement.find("left_pos").text)
     @left_pos.setter
     def left_pos(self, value):
-        self.stepTagElement.find("left_pos").text = value
+        self.stepTagElement.find("left_pos").text = str(value)
 
     @property
     def right_pos(self):
-        return self.stepTagElement.find("right_pos").text
+        return int(self.stepTagElement.find("right_pos").text)
     @right_pos.setter
     def right_pos(self, value):
-        self.stepTagElement.find("right_pos").text = value
+        self.stepTagElement.find("right_pos").text = str(value)
 
     #This tag does not always exist, so this can return None under normal conditions
     @property
     def left_end_pos(self):
-        return self.stepTagElement.find("left_end_pos").text
+        return int(self.stepTagElement.find("left_end_pos").text)
     @left_end_pos.setter
     def left_end_pos(self, value):
-        self.stepTagElement.find("left_end_pos").text = value
+        self.stepTagElement.find("left_end_pos").text = str(value)
 
     #This tag does not always exist, so this can return None under normal conditions
     @property
     def right_end_pos(self):
-        return self.stepTagElement.find("right_end_pos").text
+        return int(self.stepTagElement.find("right_end_pos").text)
     @right_end_pos.setter
     def right_end_pos(self, value):
-        self.stepTagElement.find("right_end_pos").text = value
+        self.stepTagElement.find("right_end_pos").text = str(value)
 
 
 class XMLstep:
@@ -168,45 +171,45 @@ class XMLstep:
 
     @property
     def start_tick(self):
-        return self.stepTagElement.find("start_tick").text
+        return int(self.stepTagElement.find("start_tick").text)
     @start_tick.setter
     def start_tick(self, value):
-        self.stepTagElement.find("start_tick").text = value
+        self.stepTagElement.find("start_tick").text = str(value)
 
     @property
     def end_tick(self):
-        return self.stepTagElement.find("end_tick").text
+        return int(self.stepTagElement.find("end_tick").text)
     @end_tick.setter
     def end_tick(self, value):
-        self.stepTagElement.find("end_tick").text = value
+        self.stepTagElement.find("end_tick").text = str(value)
 
     @property
     def left_pos(self):
-        return self.stepTagElement.find("left_pos").text
+        return int(self.stepTagElement.find("left_pos").text)
     @left_pos.setter
     def left_pos(self, value):
-        self.stepTagElement.find("left_pos").text = value
+        self.stepTagElement.find("left_pos").text = str(value)
 
     @property
     def right_pos(self):
-        return self.stepTagElement.find("right_pos").text
+        return int(self.stepTagElement.find("right_pos").text)
     @right_pos.setter
     def right_pos(self, value):
-        self.stepTagElement.find("right_pos").text = value
+        self.stepTagElement.find("right_pos").text = str(value)
 
     @property
     def kind(self):
-        return self.stepTagElement.find("kind").text
+        return int(self.stepTagElement.find("kind").text)
     @kind.setter
     def kind(self, value):
-        self.stepTagElement.find("kind").text = value
+        self.stepTagElement.find("kind").text = str(value)
 
     @property
     def player_id(self):
-        return self.stepTagElement.find("player_id").text
+        return int(self.stepTagElement.find("player_id").text)
     @player_id.setter
     def player_id(self, value):
-        self.stepTagElement.find("player_id").text = value
+        self.stepTagElement.find("player_id").text = str(value)
 
 
 class sequenceDataXML:
@@ -223,6 +226,9 @@ class sequenceDataXML:
 
         return None
 
+    def append(self, stepTag: XMLstep):
+        self.sequenceDataElement.append(stepTag.stepTagElement)
+
 class colorTagXML:
     def __init__(self, colorTag: xml.etree.ElementTree.Element):
         self.colorTag = colorTag
@@ -232,21 +238,21 @@ class colorTagXML:
         return self.colorTag.find("red").text
     @red.setter
     def red(self, value):
-        self.colorTag.find("red").text = value
+        self.colorTag.find("red").text = str(value)
 
     @property
     def green(self):
         return self.colorTag.find("green").text
     @green.setter
     def green(self, value):
-        self.colorTag.find("green").text = value
+        self.colorTag.find("green").text = str(value)
 
     @property
     def blue(self):
         return self.colorTag.find("blue").text
     @blue.setter
     def blue(self, value):
-        self.colorTag.find("blue").text = value
+        self.colorTag.find("blue").text = str(value)
 
 
 class paramTagXML:
@@ -258,42 +264,42 @@ class paramTagXML:
         return self.paramTag.find("time").text
     @time.setter
     def time(self, value):
-        self.paramTag.find("time").text = value
+        self.paramTag.find("time").text = str(value)
 
     @property
     def kind(self):
         return self.paramTag.find("kind").text
     @kind.setter
     def kind(self, value):
-        self.paramTag.find("kind").text = value
+        self.paramTag.find("kind").text = str(value)
 
     @property
     def layer_name(self):
         return self.paramTag.find("layer_name").text
     @layer_name.setter
     def layer_name(self, value):
-        self.paramTag.find("layer_name").text = value
+        self.paramTag.find("layer_name").text = str(value)
 
     @property
     def id(self):
         return self.paramTag.find("id").text
     @id.setter
     def id(self, value):
-        self.paramTag.find("id").text = value
+        self.paramTag.find("id").text = str(value)
 
     @property
     def lane(self):
         return self.paramTag.find("lane").text
     @lane.setter
     def lane(self, value):
-        self.paramTag.find("lane").text = value
+        self.paramTag.find("lane").text = str(value)
         
     @property
     def speed(self):
         return self.paramTag.find("speed").text
     @speed.setter
     def speed(self, value):
-        self.paramTag.find("speed").text = value
+        self.paramTag.find("speed").text = str(value)
 
     @property
     def color(self):
@@ -308,14 +314,14 @@ class extendTagXML:
         return self.extendTag.find("type").text
     @type.setter
     def type(self, value):
-        self.extendTag.find("type").text = value
+        self.extendTag.find("type").text = str(value)
 
     @property
     def tick(self):
         return self.extendTag.find("tick").text
     @tick.setter
     def tick(self, value):
-        self.extendTag.find("tick").text = value
+        self.extendTag.find("tick").text = str(value)
     
     @property
     def param(self):
@@ -346,7 +352,7 @@ class chartRootXML:
         return self.dataTag.find("seq_version").text
     @seq_version.setter
     def seq_version(self, value):
-        self.dataTag.find("seq_version").text = value
+        self.dataTag.find("seq_version").text = str(value)
 
     @property
     def info(self):
@@ -359,6 +365,30 @@ class chartRootXML:
     @property
     def extend_data(self):
         return extendDataTagXML(self.dataTag.find("extend_data"))
+
+    def write(self, path):
+        elementTree = xml.etree.ElementTree.ElementTree(element = self.dataTag)
+        elementTree.write(path, 'UTF-8')
+
+
+def createEmptyBPMXML() -> xml.etree.ElementTree.Element:
+    newBPM = xml.etree.ElementTree.Element("bpm")
+
+    xml.etree.ElementTree.SubElement(newBPM, "tick", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(newBPM, "bpm", {"__type": "s32"})
+
+    return newBPM
+
+
+def createEmptyMeasureXML() -> xml.etree.ElementTree.Element:
+    newMeasure = xml.etree.ElementTree.Element("measure")
+
+    xml.etree.ElementTree.SubElement(newMeasure, "tick", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(newMeasure, "num", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(newMeasure, "denomi", {"__type": "s32"})
+
+    return newMeasure
+
 
 def createEmptyChartXML() -> xml.etree.ElementTree.Element:
     newChart = xml.etree.ElementTree.Element("data")
@@ -373,7 +403,7 @@ def createEmptyChartXML() -> xml.etree.ElementTree.Element:
     xml.etree.ElementTree.SubElement(infoTag, "bpm_info")
     xml.etree.ElementTree.SubElement(infoTag, "measure_info")
 
-    sequenceDataTag = xml.etree.ElementTree.SubElement(newChart, "info")
+    sequenceDataTag = xml.etree.ElementTree.SubElement(newChart, "sequence_data")
 
     extendDataTag = xml.etree.ElementTree.SubElement(newChart, "extend_data")
 
@@ -395,6 +425,7 @@ def createEmptyStepXML() -> xml.etree.ElementTree.Element:
     xml.etree.ElementTree.SubElement(newStep, "long_point")
     
     return newStep
+
 
 #create an empty <point> tag (to be used in <step><long_point>)
 def createEmptyPointXML() -> xml.etree.ElementTree.Element:

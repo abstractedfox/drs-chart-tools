@@ -1,4 +1,6 @@
 from chart_xml_interface import *
+from common import *
+
 from enum import Enum
 from decimal import *
 import math
@@ -35,13 +37,6 @@ class PlayerID(Enum):
     PLAYER1 = 0
     PLAYER2 = 1
     JUMPDOWN = 4
-
-#question: do we really need this class?
-class Beat:
-    def __init__(self, value = 0, relativeTo = 0):
-        self.value = 0
-        if relativeTo is Beat:
-            pass
 
 
 class BPM:
@@ -118,12 +113,15 @@ class Chart:
     def steps():
         return self.xmlChart.sequenceDataTag
 
-    def addBPM(self, bpm: BPM, time: Ticks):
-        newBPM = XMLbpm(createEmptyBPMXML())
+    def addBPM(self, bpm: BPM, time: Ticks) -> Result:
+        if bpm.bpm < 0:
+            return Result.BPM_OUT_OF_BOUNDS 
+
+        newBPM = bpmXML(createEmptyBPMXML())
         newBPM.tick = time
         newBPM.bpm = bpm.getBPMFormatted()
 
-        newMeasure = XMLmeasure(createEmptyMeasureXML())
+        newMeasure = measureXML(createEmptyMeasureXML())
         newMeasure.tick = time
         newMeasure.num = bpm.timeSigNum
         newMeasure.denomi = bpm.timeSigDenomi
@@ -131,9 +129,17 @@ class Chart:
         self.xmlChart.info.bpm_info.append(newBPM)
         self.xmlChart.info.measure_info.append(newMeasure)
 
-    def addNote(self, noteSize: sizeUnit, position: noteCoordinates, time: Beats, playerID: PlayerID):
+        return Result.SUCCESS
+
+    def addNote(self, noteSize: sizeUnit, position: noteCoordinates, time: Beats, playerID: PlayerID) -> Result:
         time = beatsToTicks(time, self.timeUnit)
-        newStep = XMLstep(createEmptyStepXML())
+        if time < 0:
+            return Result.TIME_OUT_OF_BOUNDS
+        
+        if position.left_pos < noteCoordinates.MIN or position.right_pos > noteCoordinates.MAX:
+            return Result.NOTE_OUT_OF_BOUNDS
+
+        newStep = stepXML(createEmptyStepXML())
         newStep.start_tick = time
         newStep.end_tick = time
         newStep.left_pos = position.left_pos
@@ -143,13 +149,15 @@ class Chart:
 
         self.xmlChart.sequence_data.append(newStep)
 
-    def save(self, filename: str):
-        self.xmlChart.write(filename)
+        return Result.SUCCESS
+
+    def save(self, filename: str) -> Result:
+        return self.xmlChart.write(filename)
 
 
 #Get the literal coordinates of a note of size 'noteSize' at coordinate 'position' relative to 'relativeTo' (left or right)
 #Returns None if the note would be out of bounds
-def getPosition(noteSize: sizeUnit, position: int, relativeTo = 'L') -> noteCoordinates | None:
+def getPosition(noteSize: sizeUnit, position: int, relativeTo = 'L') -> noteCoordinates | Result:
     result = noteCoordinates()
 
     if relativeTo == 'L':
@@ -157,17 +165,14 @@ def getPosition(noteSize: sizeUnit, position: int, relativeTo = 'L') -> noteCoor
         result.right_pos = position + noteSize
 
         if result.right_pos > noteCoordinates.MAX or result.left_pos < noteCoordinates.MIN:
-            print("Note out of bounds " + str(result.left_pos) + " " + str(result.right_pos) + " position = " + str(position) + " " + relativeTo)
-            return None
+            return Result.NOTE_OUT_OF_BOUNDS
     elif relativeTo == 'R':
         result.left_pos = noteCoordiantes.MAX - position - noteSize
         result.right_pos = noteCoordinates.MAX - position
 
         if result.right_pos > noteCoordinates.MAX or result.left_pos < noteCoordinates.MIN:
-            print("Note out of bounds " + str(result.left_pos) + " " + str(result.right_pos) + " position = " + str(position) + " " + relativeTo)
-            return None
+            return Result.NOTE_OUT_OF_BOUNDS
     else:
-        print("Note out of bounds or invalid relative position " + str(result.left_pos) + " " + str(result.right_pos) + " position = " + str(position) + " " + relativeTo)
-        return None
-
+        return Result.BAD_RELATIVE_POSITION 
+        
     return result

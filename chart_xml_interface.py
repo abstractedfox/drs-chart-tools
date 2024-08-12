@@ -1,4 +1,5 @@
 import xml.etree.ElementTree
+from common import *
 
 SEQ_VER = 9
 
@@ -6,47 +7,47 @@ SEQ_VER = 9
 #Classes are for interfacing with XML structures that already exist in a pythonic way, they are really just an abstraction over the ElementTree module.
 #To create new XML structures, use the functions that generate empty ones, then interface with them using the abstraction classes
 
-class XMLbpm:
+class bpmXML:
     def __init__(self, bpmTag: xml.etree.ElementTree.Element):
-        self.bpmElement = bpmTag
+        self.innerElement = bpmTag
 
     @property
     def tick(self):
-        return int(self.bpmElement.find("tick").text)
+        return int(self.innerElement.find("tick").text)
     @tick.setter
     def tick(self, value):
-        self.bpmElement.find("tick").text = str(value)
+        self.innerElement.find("tick").text = str(value)
 
     @property
     def bpm(self):
-        return int(self.bpmElement.find("bpm").text)
+        return int(self.innerElement.find("bpm").text)
     @bpm.setter
     def bpm(self, value):
-        self.bpmElement.find("bpm").text = str(value)
+        self.innerElement.find("bpm").text = str(value)
 
 #Since this tag does nothing but contain <bpm> tags, we're essentially just going to have it be a container class that you access with array indexing
-class bpmInfo:
-    def __init__(self, bpmInfoRoot: xml.etree.ElementTree.Element):
-        self.bpmInfoElement = bpmInfoRoot
+class bpmInfoXML:
+    def __init__(self, bpmInfoXMLRoot: xml.etree.ElementTree.Element):
+        self.innerElement = bpmInfoXMLRoot
 
     def __getitem__(self, key):
         i = -1;
 
-        for bpm in self.bpmInfoElement:
+        for bpm in self.innerElement:
             i += 1
             if i == key:
-                return XMLbpm(bpm)
+                return bpmXML(bpm)
 
         return None
 
-    def append(self, newBPM: XMLbpm):
-        self.bpmInfoElement.append(newBPM.bpmElement)
+    def append(self, newBPM: bpmXML):
+        self.innerElement.append(newBPM.innerElement)
 
     def removeAtIndex(self, index: int):
-        self.bpmInfoElement.remove(self[index])
+        self.innerElement.remove(self[index])
 
 
-class XMLmeasure:
+class measureXML:
     def __init__(self, measureTag: xml.etree.ElementTree.Element):
         self.measureElement = measureTag
 
@@ -71,276 +72,276 @@ class XMLmeasure:
     def denomi(self, value):
         self.measureElement.find("denomi").text = str(value)
 
-class measureInfo:
-    def __init__(self, measureInfoRoot: xml.etree.ElementTree.Element):
-        self.measureInfoElement = measureInfoRoot
+class measureInfoXML:
+    def __init__(self, measureInfoXMLRoot: xml.etree.ElementTree.Element):
+        self.innerElement = measureInfoXMLRoot
 
     def __getitem__(self, key):
         i = -1;
 
-        for measure in self.measureInfoElement:
+        for measure in self.innerElement:
             i += 1
             if i == key:
-                return XMLmeasure(measure)
+                return measureXML(measure)
 
         return None
 
-    def append(self, newMeasure: XMLmeasure):
-        self.measureInfoElement.append(newMeasure.measureElement)
+    def append(self, newMeasure: measureXML):
+        self.innerElement.append(newMeasure.measureElement)
 
 #The <info> tag, ie the chart header
 class chartInfo:
     def __init__(self, chartRoot: xml.etree.ElementTree.Element):
-        self.infoTagElement = chartRoot.find("info")
+        self.innerElement = chartRoot.find("info")
 
     @property
     def time_unit(self):
-        return int(self.infoTagElement.find("time_unit").text)
+        return int(self.innerElement.find("time_unit").text)
     @time_unit.setter
     def time_unit(self, value):
-        self.infoTagElement.find("time_unit").text = str(value)
+        self.innerElement.find("time_unit").text = str(value)
 
     @property
     def end_tick(self):
-        return int(self.infoTagElement.find("end_tick").text)
+        return int(self.innerElement.find("end_tick").text)
     @end_tick.setter
     def end_tick(self, value):
-        self.infoTagElement.find("end_tick").text = str(value)
+        self.innerElement.find("end_tick").text = str(value)
 
     @property
     def bpm_info(self):
-        return bpmInfo(self.infoTagElement.find("bpm_info"))
+        return bpmInfoXML(self.innerElement.find("bpm_info"))
 
     @property
     def measure_info(self):
-        return measureInfo(self.infoTagElement.find("measure_info"))
+        return measureInfoXML(self.innerElement.find("measure_info"))
 
 #used inside <long_point>s
-class XMLpoint:
+class pointXML:
     def __init__(self, pointTag: xml.etree.ElementTree.Element):
-        self.pointTagElement = pointTag
+        self.innerElement = pointTag
 
     @property
     def tick(self):
-        return int(self.stepTagElement.find("tick").text)
+        return int(self.innerElement.find("tick").text)
     @tick.setter
     def tick(self, value):
-        self.stepTagElement.find("tick").text = str(value)
+        self.innerElement.find("tick").text = str(value)
 
     @property
     def start_tick(self):
-        return int(self.stepTagElement.find("start_tick").text)
+        return int(self.innerElement.find("start_tick").text)
     @start_tick.setter
     def start_tick(self, value):
-        self.stepTagElement.find("start_tick").text = str(value)
+        self.innerElement.find("start_tick").text = str(value)
 
     @property
     def left_pos(self):
-        return int(self.stepTagElement.find("left_pos").text)
+        return int(self.innerElement.find("left_pos").text)
     @left_pos.setter
     def left_pos(self, value):
-        self.stepTagElement.find("left_pos").text = str(value)
+        self.innerElement.find("left_pos").text = str(value)
 
     @property
     def right_pos(self):
-        return int(self.stepTagElement.find("right_pos").text)
+        return int(self.innerElement.find("right_pos").text)
     @right_pos.setter
     def right_pos(self, value):
-        self.stepTagElement.find("right_pos").text = str(value)
+        self.innerElement.find("right_pos").text = str(value)
 
     #This tag does not always exist, so this can return None under normal conditions
     @property
     def left_end_pos(self):
-        return int(self.stepTagElement.find("left_end_pos").text)
+        return int(self.innerElement.find("left_end_pos").text)
     @left_end_pos.setter
     def left_end_pos(self, value):
-        self.stepTagElement.find("left_end_pos").text = str(value)
+        self.innerElement.find("left_end_pos").text = str(value)
 
     #This tag does not always exist, so this can return None under normal conditions
     @property
     def right_end_pos(self):
-        return int(self.stepTagElement.find("right_end_pos").text)
+        return int(self.innerElement.find("right_end_pos").text)
     @right_end_pos.setter
     def right_end_pos(self, value):
-        self.stepTagElement.find("right_end_pos").text = str(value)
+        self.innerElement.find("right_end_pos").text = str(value)
 
 
-class XMLstep:
+class stepXML:
     def __init__(self, stepTag: xml.etree.ElementTree.Element):
-        self.stepTagElement = stepTag
+        self.innerElement = stepTag
 
     @property
     def start_tick(self):
-        return int(self.stepTagElement.find("start_tick").text)
+        return int(self.innerElement.find("start_tick").text)
     @start_tick.setter
     def start_tick(self, value):
-        self.stepTagElement.find("start_tick").text = str(value)
+        self.innerElement.find("start_tick").text = str(value)
 
     @property
     def end_tick(self):
-        return int(self.stepTagElement.find("end_tick").text)
+        return int(self.innerElement.find("end_tick").text)
     @end_tick.setter
     def end_tick(self, value):
-        self.stepTagElement.find("end_tick").text = str(value)
+        self.innerElement.find("end_tick").text = str(value)
 
     @property
     def left_pos(self):
-        return int(self.stepTagElement.find("left_pos").text)
+        return int(self.innerElement.find("left_pos").text)
     @left_pos.setter
     def left_pos(self, value):
-        self.stepTagElement.find("left_pos").text = str(value)
+        self.innerElement.find("left_pos").text = str(value)
 
     @property
     def right_pos(self):
-        return int(self.stepTagElement.find("right_pos").text)
+        return int(self.innerElement.find("right_pos").text)
     @right_pos.setter
     def right_pos(self, value):
-        self.stepTagElement.find("right_pos").text = str(value)
+        self.innerElement.find("right_pos").text = str(value)
 
     @property
     def kind(self):
-        return int(self.stepTagElement.find("kind").text)
+        return int(self.innerElement.find("kind").text)
     @kind.setter
     def kind(self, value):
-        self.stepTagElement.find("kind").text = str(value)
+        self.innerElement.find("kind").text = str(value)
 
     @property
     def player_id(self):
-        return int(self.stepTagElement.find("player_id").text)
+        return int(self.innerElement.find("player_id").text)
     @player_id.setter
     def player_id(self, value):
-        self.stepTagElement.find("player_id").text = str(value)
+        self.innerElement.find("player_id").text = str(value)
 
 
 class sequenceDataXML:
     def __init__(self, sequenceDataTag: xml.etree.ElementTree.Element):
-        self.sequenceDataElement = sequenceDataTag
+        self.innerElement = sequenceDataTag
 
     def __getitem__(self, key):
         i = -1;
 
-        for step in self.sequenceDataElement:
+        for step in self.innerElement:
             i += 1
             if i == key:
-                return XMLstep(step)
+                return stepXML(step)
 
         return None
 
-    def append(self, stepTag: XMLstep):
-        self.sequenceDataElement.append(stepTag.stepTagElement)
+    def append(self, stepTag: stepXML):
+        self.innerElement.append(stepTag.innerElement)
 
-    def remove(self, stepTag: XMLstep):
-        if stepTag.bpmElement in self.sequenceDataElement.items():
-            self.sequenceDataElement.remove(stepTag)
+    def remove(self, stepTag: stepXML):
+        if stepTag.innerElement in self.innerElement.items():
+            self.innerElement.remove(stepTag)
 
 
 class colorTagXML:
     def __init__(self, colorTag: xml.etree.ElementTree.Element):
-        self.colorTag = colorTag
+        self.innerElement = colorTag
 
     @property
     def red(self):
-        return self.colorTag.find("red").text
+        return self.innerElement.find("red").text
     @red.setter
     def red(self, value):
-        self.colorTag.find("red").text = str(value)
+        self.innerElement.find("red").text = str(value)
 
     @property
     def green(self):
-        return self.colorTag.find("green").text
+        return self.innerElement.find("green").text
     @green.setter
     def green(self, value):
-        self.colorTag.find("green").text = str(value)
+        self.innerElement.find("green").text = str(value)
 
     @property
     def blue(self):
-        return self.colorTag.find("blue").text
+        return self.innerElement.find("blue").text
     @blue.setter
     def blue(self, value):
-        self.colorTag.find("blue").text = str(value)
+        self.innerElement.find("blue").text = str(value)
 
 
 class paramTagXML:
     def __init__(self, paramTag: xml.etree.ElementTree.Element):
-        self.paramTag = paramTag
+        self.innerElement = paramTag
 
     @property
     def time(self):
-        return self.paramTag.find("time").text
+        return self.innerElement.find("time").text
     @time.setter
     def time(self, value):
-        self.paramTag.find("time").text = str(value)
+        self.innerElement.find("time").text = str(value)
 
     @property
     def kind(self):
-        return self.paramTag.find("kind").text
+        return self.innerElement.find("kind").text
     @kind.setter
     def kind(self, value):
-        self.paramTag.find("kind").text = str(value)
+        self.innerElement.find("kind").text = str(value)
 
     @property
     def layer_name(self):
-        return self.paramTag.find("layer_name").text
+        return self.innerElement.find("layer_name").text
     @layer_name.setter
     def layer_name(self, value):
-        self.paramTag.find("layer_name").text = str(value)
+        self.innerElement.find("layer_name").text = str(value)
 
     @property
     def id(self):
-        return self.paramTag.find("id").text
+        return self.innerElement.find("id").text
     @id.setter
     def id(self, value):
-        self.paramTag.find("id").text = str(value)
+        self.innerElement.find("id").text = str(value)
 
     @property
     def lane(self):
-        return self.paramTag.find("lane").text
+        return self.innerElement.find("lane").text
     @lane.setter
     def lane(self, value):
-        self.paramTag.find("lane").text = str(value)
+        self.innerElement.find("lane").text = str(value)
         
     @property
     def speed(self):
-        return self.paramTag.find("speed").text
+        return self.innerElement.find("speed").text
     @speed.setter
     def speed(self, value):
-        self.paramTag.find("speed").text = str(value)
+        self.innerElement.find("speed").text = str(value)
 
     @property
     def color(self):
-        return colorTagXML(self.paramTag.find("color")) 
+        return colorTagXML(self.innerElement.find("color")) 
 
 class extendTagXML:
     def __init__(self, extendTag: xml.etree.ElementTree.Element):
-        self.extendTag = extendTag
+        self.innerElement = extendTag
 
     @property
     def type(self):
-        return self.extendTag.find("type").text
+        return self.innerElement.find("type").text
     @type.setter
     def type(self, value):
-        self.extendTag.find("type").text = str(value)
+        self.innerElement.find("type").text = str(value)
 
     @property
     def tick(self):
-        return self.extendTag.find("tick").text
+        return self.innerElement.find("tick").text
     @tick.setter
     def tick(self, value):
-        self.extendTag.find("tick").text = str(value)
+        self.innerElement.find("tick").text = str(value)
     
     @property
     def param(self):
-        return paramTagXML(self.extendTag.find("param"))
+        return paramTagXML(self.innerElement.find("param"))
 
 
 class extendDataTagXML:
     def __init__(self, extendDataTag: xml.etree.ElementTree.Element):
-        self.extendDataTag = extendDataTag
+        self.innerElement = extendDataTag
 
     def __getitem__(self, key):
         i = -1;
 
-        for extendTag in self.extendDataTag:
+        for extendTag in self.innerElement:
             i += 1
             if i == key:
                 return extendTag
@@ -350,31 +351,35 @@ class extendDataTagXML:
 #root tag of the chart
 class chartRootXML:
     def __init__(self, dataTag: xml.etree.ElementTree.Element):
-        self.dataTag = dataTag
+        self.innerElement = dataTag
 
     @property
     def seq_version(self):
-        return self.dataTag.find("seq_version").text
+        return self.innerElement.find("seq_version").text
     @seq_version.setter
     def seq_version(self, value):
-        self.dataTag.find("seq_version").text = str(value)
+        self.innerElement.find("seq_version").text = str(value)
 
     @property
     def info(self):
-        return chartInfo(self.dataTag)
+        return chartInfo(self.innerElement)
 
     @property
     def sequence_data(self):
-        return sequenceDataXML(self.dataTag.find("sequence_data"))
+        return sequenceDataXML(self.innerElement.find("sequence_data"))
 
     @property
     def extend_data(self):
-        return extendDataTagXML(self.dataTag.find("extend_data"))
+        return extendDataTagXML(self.innerElement.find("extend_data"))
 
-    def write(self, path):
-        elementTree = xml.etree.ElementTree.ElementTree(element = self.dataTag)
-        elementTree.write(path, 'UTF-8')
-
+    def write(self, path) -> Result:
+        elementTree = xml.etree.ElementTree.ElementTree(element = self.innerElement)
+        try:
+            elementTree.write(path, 'UTF-8')
+        except:
+            return Result.FILE_WRITE_ERROR
+        
+        return Result.SUCCESS
 
 def createEmptyBPMXML() -> xml.etree.ElementTree.Element:
     newBPM = xml.etree.ElementTree.Element("bpm")

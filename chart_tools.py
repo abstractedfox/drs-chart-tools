@@ -90,7 +90,6 @@ sizeUnit = int
 def beatsToTicks(beats: Beats, timeUnit: Ticks):
     return int(math.floor(timeUnit * beats))
 
-
 class Chart:
     #Either pass a chart root tag as xml.etree.ElementTree.Element, or pass no arguments and create an empty chart
     def __init__(self, xml = None, timeUnit = Ticks(480), endTick = Ticks(0)):
@@ -150,6 +149,19 @@ class Chart:
         self.xml.sequence_data.append(newStep)
 
         return Result.SUCCESS
+
+#note to future self: test this
+    def addLongPoint(self, stepToModify: stepXML, duration: Ticks):
+        if len(stepToModify.long_point) > 0:
+            return Result.LONG_POINT_ALRERADY_EXISTS
+
+        newPoint = pointXML(createEmptyPointXML())
+
+        newPoint.tick = stepToModify.start_tick + duration
+        newPoint.left_pos = stepToModify.left_pos
+        newPoint.right_pos = stepToModify.right_pos
+
+        stepToModify.long_point.append(newPoint)
 
     def save(self, filename: str) -> Result:
         return self.xml.write(filename)

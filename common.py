@@ -8,3 +8,5 @@ class Result(Enum):
     TIME_OUT_OF_BOUNDS = 4
     FILE_WRITE_ERROR = 5
     BAD_RELATIVE_POSITION = 6
+    INVALID_INDEX = 7
+    MISC_ERROR = 8

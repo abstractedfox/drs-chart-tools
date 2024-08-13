@@ -75,7 +75,7 @@ some questions to ask:
                     -a hold will end on its own at the <tick> time of the last <point> in this tag
                     -a hold will terminate into a 'swipe' if left_end_pos and right_end_pos are defined
                 -for clarity: 'swipe' notes are not unique notes in of themselves, they are part of a hold
-                <point>
+                <point> (many)
                     <tick>
                         -seemingly same behavior as <point> in seq ver 8's <long_point>, indicates the time (now in ticks) at which a hold segment ends in its terminating behavior
 

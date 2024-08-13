@@ -93,25 +93,25 @@ def beatsToTicks(beats: Beats, timeUnit: Ticks):
 
 class Chart:
     #Either pass a chart root tag as xml.etree.ElementTree.Element, or pass no arguments and create an empty chart
-    def __init__(self, xmlChart = None, timeUnit = Ticks(480), endTick = Ticks(0)):
-        if xmlChart is not None:
-            self.xmlChart = chartRootXML(xmlChart)
+    def __init__(self, xml = None, timeUnit = Ticks(480), endTick = Ticks(0)):
+        if xml is not None:
+            self.xml = chartRootXML(xml)
         else:
-            self.xmlChart = chartRootXML(createEmptyChartXML())
+            self.xml = chartRootXML(createEmptyChartXML())
 
-        self.xmlChart.info.time_unit = timeUnit
-        self.xmlChart.info.end_tick = endTick
+        self.xml.info.time_unit = timeUnit
+        self.xml.info.end_tick = endTick
 
     @property
     def timeUnit(self):
-        return self.xmlChart.info.time_unit
+        return self.xml.info.time_unit
     @timeUnit.setter
     def timeUnit(self, value):
-        self.xmlChart.info.time_unit = value
+        self.xml.info.time_unit = value
 
     @property
-    def steps():
-        return self.xmlChart.sequenceDataTag
+    def steps(self):
+        return self.xml.sequence_data
 
     def addBPM(self, bpm: BPM, time: Ticks) -> Result:
         if bpm.bpm < 0:
@@ -126,8 +126,8 @@ class Chart:
         newMeasure.num = bpm.timeSigNum
         newMeasure.denomi = bpm.timeSigDenomi
 
-        self.xmlChart.info.bpm_info.append(newBPM)
-        self.xmlChart.info.measure_info.append(newMeasure)
+        self.xml.info.bpm_info.append(newBPM)
+        self.xml.info.measure_info.append(newMeasure)
 
         return Result.SUCCESS
 
@@ -147,12 +147,12 @@ class Chart:
         newStep.kind = StepTypes.LEFT.value
         newStep.player_id = playerID.value
 
-        self.xmlChart.sequence_data.append(newStep)
+        self.xml.sequence_data.append(newStep)
 
         return Result.SUCCESS
 
     def save(self, filename: str) -> Result:
-        return self.xmlChart.write(filename)
+        return self.xml.write(filename)
 
 
 #Get the literal coordinates of a note of size 'noteSize' at coordinate 'position' relative to 'relativeTo' (left or right)

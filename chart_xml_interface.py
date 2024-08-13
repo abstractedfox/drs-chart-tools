@@ -7,6 +7,52 @@ SEQ_VER = 9
 #Classes are for interfacing with XML structures that already exist in a pythonic way, they are really just an abstraction over the ElementTree module.
 #To create new XML structures, use the functions that generate empty ones, then interface with them using the abstraction classes
 
+#Generic functions implementing things for xml wrapper classes that we want to treat as collection types
+class IXMLCollection:
+    #for each implementation of this class, set this to the abstracted type of the XML tag that this collection is supposed to track
+    collectionType = None
+
+    def __init__(self):
+        pass
+
+    def __getitem__(self, key):
+        i = -1;
+
+        for step in self.innerElement:
+            i += 1
+            if i == key:
+                return stepXML(step)
+
+        return None
+
+    def __len__(self):
+        i = 0
+        for item in self.innerElement:
+            i += 1
+
+        return i
+
+    def __iter__(self):
+        self.i = 0
+        return self
+
+    def __next__(self):
+        indexToReturn = self.i
+        self.i += 1
+
+        if self.i > len(self):
+            raise StopIteration
+
+        return self[indexToReturn]
+
+    def append(self, newObject: collectionType):
+        self.innerElement.append(newObject.innerElement)
+
+    def remove(self, removeObject: collectionType):
+        #The docs state that remove() only operates on objects by their unique ID, not by their contents, 'unlike find()'
+        self.innerElement.remove(removeObject.innerElement)
+
+
 class bpmXML:
     def __init__(self, bpmTag: xml.etree.ElementTree.Element):
         self.innerElement = bpmTag
@@ -25,69 +71,32 @@ class bpmXML:
     def bpm(self, value):
         self.innerElement.find("bpm").text = str(value)
 
-#Since this tag does nothing but contain <bpm> tags, we're essentially just going to have it be a container class that you access with array indexing
-class bpmInfoXML:
-    def __init__(self, bpmInfoXMLRoot: xml.etree.ElementTree.Element):
-        self.innerElement = bpmInfoXMLRoot
-
-    def __getitem__(self, key):
-        i = -1;
-
-        for bpm in self.innerElement:
-            i += 1
-            if i == key:
-                return bpmXML(bpm)
-
-        return None
-
-    def append(self, newBPM: bpmXML):
-        self.innerElement.append(newBPM.innerElement)
-
-    def removeAtIndex(self, index: int):
-        self.innerElement.remove(self[index])
-
 
 class measureXML:
     def __init__(self, measureTag: xml.etree.ElementTree.Element):
-        self.measureElement = measureTag
+        self.innerElement = measureTag
 
     @property
     def tick(self):
-        return int(self.measureElement.find("tick").text)
+        return int(self.innerElement.find("tick").text)
     @tick.setter
     def tick(self, value):
-        self.measureElement.find("tick").text = str(value)
+        self.innerElement.find("tick").text = str(value)
 
     @property
     def num(self):
-        return int(self.measureElement.find("num").text)
+        return int(self.innerElement.find("num").text)
     @num.setter
     def num(self, value):
-        self.measureElement.find("num").text = str(value)
+        self.innerElement.find("num").text = str(value)
 
     @property
     def denomi(self):
-        return int(self.measureElement.find("denomi").text)
+        return int(self.innerElement.find("denomi").text)
     @denomi.setter
     def denomi(self, value):
-        self.measureElement.find("denomi").text = str(value)
+        self.innerElement.find("denomi").text = str(value)
 
-class measureInfoXML:
-    def __init__(self, measureInfoXMLRoot: xml.etree.ElementTree.Element):
-        self.innerElement = measureInfoXMLRoot
-
-    def __getitem__(self, key):
-        i = -1;
-
-        for measure in self.innerElement:
-            i += 1
-            if i == key:
-                return measureXML(measure)
-
-        return None
-
-    def append(self, newMeasure: measureXML):
-        self.innerElement.append(newMeasure.measureElement)
 
 #The <info> tag, ie the chart header
 class chartInfo:
@@ -127,13 +136,6 @@ class pointXML:
     @tick.setter
     def tick(self, value):
         self.innerElement.find("tick").text = str(value)
-
-    @property
-    def start_tick(self):
-        return int(self.innerElement.find("start_tick").text)
-    @start_tick.setter
-    def start_tick(self, value):
-        self.innerElement.find("start_tick").text = str(value)
 
     @property
     def left_pos(self):
@@ -212,27 +214,9 @@ class stepXML:
     def player_id(self, value):
         self.innerElement.find("player_id").text = str(value)
 
-
-class sequenceDataXML:
-    def __init__(self, sequenceDataTag: xml.etree.ElementTree.Element):
-        self.innerElement = sequenceDataTag
-
-    def __getitem__(self, key):
-        i = -1;
-
-        for step in self.innerElement:
-            i += 1
-            if i == key:
-                return stepXML(step)
-
-        return None
-
-    def append(self, stepTag: stepXML):
-        self.innerElement.append(stepTag.innerElement)
-
-    def remove(self, stepTag: stepXML):
-        if stepTag.innerElement in self.innerElement.items():
-            self.innerElement.remove(stepTag)
+    @property
+    def long_point(self):
+        return longPointXML(self.innerElement.find("long_point"))
 
 
 class colorTagXML:
@@ -299,7 +283,7 @@ class paramTagXML:
     @lane.setter
     def lane(self, value):
         self.innerElement.find("lane").text = str(value)
-        
+
     @property
     def speed(self):
         return self.innerElement.find("speed").text
@@ -309,7 +293,8 @@ class paramTagXML:
 
     @property
     def color(self):
-        return colorTagXML(self.innerElement.find("color")) 
+        return colorTagXML(self.innerElement.find("color"))
+
 
 class extendTagXML:
     def __init__(self, extendTag: xml.etree.ElementTree.Element):
@@ -328,25 +313,63 @@ class extendTagXML:
     @tick.setter
     def tick(self, value):
         self.innerElement.find("tick").text = str(value)
-    
+
     @property
     def param(self):
         return paramTagXML(self.innerElement.find("param"))
 
 
-class extendDataTagXML:
+class measureInfoXML(IXMLCollection):
+    def __init__(self, measureInfoXMLRoot: xml.etree.ElementTree.Element):
+        self.innerElement = measureInfoXMLRoot
+        self.collectionType = type(measureXML)
+
+    def removeAtIndex(self, index: int) -> Result:
+        if index > (len(self) - 1):
+            return Result.INVALID_INDEX
+
+        try:
+            self.innerElement.remove(self[index].innerElement)
+        except Exception:
+            return Result.MISC_ERROR
+
+        return Result.SUCCESS
+
+
+class bpmInfoXML(IXMLCollection):
+    def __init__(self, bpmInfoXMLRoot: xml.etree.ElementTree.Element):
+        self.innerElement = bpmInfoXMLRoot
+        self.collectionType = type(bpmXML)
+
+    def removeAtIndex(self, index: int) -> Result:
+        if index > (len(self) - 1):
+            return Result.INVALID_INDEX
+
+        try:
+            self.innerElement.remove(self[index].innerElement)
+        except Exception:
+            return Result.MISC_ERROR
+
+        return Result.SUCCESS
+
+
+class longPointXML(IXMLCollection):
+    def __init__(self, longPointTag: xml.etree.ElementTree.Element):
+        self.innerElement = longPointTag
+        self.collectionType = type(pointXML)
+
+
+class sequenceDataXML(IXMLCollection):
+    def __init__(self, sequenceDataTag: xml.etree.ElementTree.Element):
+        self.innerElement = sequenceDataTag
+        self.collectionType = type(stepXML)
+
+
+class extendDataTagXML(IXMLCollection):
     def __init__(self, extendDataTag: xml.etree.ElementTree.Element):
         self.innerElement = extendDataTag
+        self.collectionType = type(extendTagXML)
 
-    def __getitem__(self, key):
-        i = -1;
-
-        for extendTag in self.innerElement:
-            i += 1
-            if i == key:
-                return extendTag
-
-        return None
 
 #root tag of the chart
 class chartRootXML:
@@ -381,6 +404,8 @@ class chartRootXML:
         
         return Result.SUCCESS
 
+
+#Functions for initializing empty XML
 def createEmptyBPMXML() -> xml.etree.ElementTree.Element:
     newBPM = xml.etree.ElementTree.Element("bpm")
 

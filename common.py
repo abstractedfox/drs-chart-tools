@@ -11,3 +11,4 @@ class Result(Enum):
     INVALID_INDEX = 7
     MISC_ERROR = 8
     LONG_POINT_ALRERADY_EXISTS = 9
+    INVALID_LONG_POINT = 10

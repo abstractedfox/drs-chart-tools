@@ -17,11 +17,17 @@ class IXMLCollection:
 
     def __getitem__(self, key):
         i = -1;
+        lastElement = None
 
-        for step in self.innerElement:
+        for item in self.innerElement:
             i += 1
+            lastElement = self.collectionType(item)
+
             if i == key:
-                return stepXML(step)
+                return self.collectionType(item)
+
+        if (key == -1):
+            return lastElement
 
         return None
 
@@ -47,9 +53,9 @@ class IXMLCollection:
 
     def append(self, newObject: collectionType):
         self.innerElement.append(newObject.innerElement)
+        return self[-1]
 
     def remove(self, removeObject: collectionType):
-        #The docs state that remove() only operates on objects by their unique ID, not by their contents, 'unlike find()'
         self.innerElement.remove(removeObject.innerElement)
 
 
@@ -130,6 +136,9 @@ class pointXML:
     def __init__(self, pointTag: xml.etree.ElementTree.Element):
         self.innerElement = pointTag
 
+    def __eq__(self, compareTo):
+        return self.tick == compareTo.tick and self.left_pos == compareTo.left_pos and self.right_pos == compareTo.right_pos and ~((self.left_end_pos is None) ^ (self.left_end_pos is None)) and ~((self.right_end_pos is None) ^ (compareTo.right_end_pos is None)) and self.left_end_pos == compareTo.left_end_pos and self.right_end_pos == compareTo.right_end_pos 
+
     @property
     def tick(self):
         return int(self.innerElement.find("tick").text)
@@ -154,7 +163,10 @@ class pointXML:
     #This tag does not always exist, so this can return None under normal conditions
     @property
     def left_end_pos(self):
-        return int(self.innerElement.find("left_end_pos").text)
+        result = self.innerElement.find("left_end_pos")
+        if result == None:
+            return None
+        return int(result.text)
     @left_end_pos.setter
     def left_end_pos(self, value):
         self.innerElement.find("left_end_pos").text = str(value)
@@ -162,7 +174,10 @@ class pointXML:
     #This tag does not always exist, so this can return None under normal conditions
     @property
     def right_end_pos(self):
-        return int(self.innerElement.find("right_end_pos").text)
+        result = self.innerElement.find("right_end_pos")
+        if result is None:
+            return None
+        return int(result.text)
     @right_end_pos.setter
     def right_end_pos(self, value):
         self.innerElement.find("right_end_pos").text = str(value)
@@ -322,7 +337,7 @@ class extendTagXML:
 class measureInfoXML(IXMLCollection):
     def __init__(self, measureInfoXMLRoot: xml.etree.ElementTree.Element):
         self.innerElement = measureInfoXMLRoot
-        self.collectionType = type(measureXML)
+        self.collectionType = measureXML
 
     def removeAtIndex(self, index: int) -> Result:
         if index > (len(self) - 1):
@@ -339,7 +354,7 @@ class measureInfoXML(IXMLCollection):
 class bpmInfoXML(IXMLCollection):
     def __init__(self, bpmInfoXMLRoot: xml.etree.ElementTree.Element):
         self.innerElement = bpmInfoXMLRoot
-        self.collectionType = type(bpmXML)
+        self.collectionType = bpmXML
 
     def removeAtIndex(self, index: int) -> Result:
         if index > (len(self) - 1):
@@ -356,19 +371,19 @@ class bpmInfoXML(IXMLCollection):
 class longPointXML(IXMLCollection):
     def __init__(self, longPointTag: xml.etree.ElementTree.Element):
         self.innerElement = longPointTag
-        self.collectionType = type(pointXML)
+        self.collectionType = pointXML
 
 
 class sequenceDataXML(IXMLCollection):
     def __init__(self, sequenceDataTag: xml.etree.ElementTree.Element):
         self.innerElement = sequenceDataTag
-        self.collectionType = type(stepXML)
+        self.collectionType = stepXML
 
 
 class extendDataTagXML(IXMLCollection):
     def __init__(self, extendDataTag: xml.etree.ElementTree.Element):
         self.innerElement = extendDataTag
-        self.collectionType = type(extendTagXML)
+        self.collectionType = extendTagXML
 
 
 #root tag of the chart
@@ -476,4 +491,3 @@ def createEmptyPointXML() -> xml.etree.ElementTree.Element:
 def appendEndPosXML(pointTag: xml.etree.ElementTree.Element):
     xml.etree.ElementTree.SubElement(pointTag, "left_end_pos", {"__type": "s32"})
     xml.etree.ElementTree.SubElement(pointTag, "right_end_pos", {"__type": "s32"})
-    

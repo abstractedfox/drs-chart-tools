@@ -87,8 +87,17 @@ class noteCoordinates:
 #        self.size = size
 sizeUnit = int
 
+
 def beatsToTicks(beats: Beats, timeUnit: Ticks):
     return int(math.floor(timeUnit * beats))
+
+#Get the tick of the last element in a step
+def getLastTimeInStep(step: stepXML) -> Ticks:
+    if len(step.long_point) == 0:
+        return step.start_tick
+
+    return step.long_point[-1].tick
+    
 
 class Chart:
     #Either pass a chart root tag as xml.etree.ElementTree.Element, or pass no arguments and create an empty chart
@@ -130,7 +139,7 @@ class Chart:
 
         return Result.SUCCESS
 
-    def addNote(self, noteSize: sizeUnit, position: noteCoordinates, time: Beats, playerID: PlayerID) -> Result:
+    def addNote(self, noteSize: sizeUnit, position: noteCoordinates, time: Beats, playerID: PlayerID, stepType: StepTypes):
         time = beatsToTicks(time, self.timeUnit)
         if time < 0:
             return Result.TIME_OUT_OF_BOUNDS
@@ -143,25 +152,74 @@ class Chart:
         newStep.end_tick = time
         newStep.left_pos = position.left_pos
         newStep.right_pos = position.right_pos
-        newStep.kind = StepTypes.LEFT.value
+        newStep.kind = stepType.value 
         newStep.player_id = playerID.value
 
         self.xml.sequence_data.append(newStep)
 
-        return Result.SUCCESS
+        return newStep
 
-#note to future self: test this
     def addLongPoint(self, stepToModify: stepXML, duration: Ticks):
-        if len(stepToModify.long_point) > 0:
-            return Result.LONG_POINT_ALRERADY_EXISTS
-
         newPoint = pointXML(createEmptyPointXML())
 
-        newPoint.tick = stepToModify.start_tick + duration
+        newPoint.tick = getLastTimeInStep(stepToModify) + duration
         newPoint.left_pos = stepToModify.left_pos
         newPoint.right_pos = stepToModify.right_pos
 
-        stepToModify.long_point.append(newPoint)
+        stepToModify.end_tick = newPoint.tick
+        
+        returnVal = stepToModify.long_point.append(newPoint)
+        return returnVal
+
+    def movePoint(self, stepToModify: stepXML, pointToModify: pointXML, position: noteCoordinates):
+        if pointToModify not in stepToModify.long_point:
+            return Result.INVALID_LONG_POINT
+
+        pointToModify.left_pos = position.left_pos
+        pointToModify.right_pos = position.right_pos
+
+    def addSwipe(self, stepToModify: stepXML, pointToModify: pointXML, position: noteCoordinates):
+        if pointToModify not in stepToModify.long_point:
+            return Result.INVALID_LONG_POINT
+        
+        appendEndPosXML(pointToModify.innerElement)
+
+        pointToModify.left_end_pos = position.left_pos
+        pointToModify.right_end_pos = position.right_pos
+
+    def addJump(self, time: Ticks):
+        if time < 0:
+            return Result.TIME_OUT_OF_BOUNDS
+
+        newJump = stepXML(createEmptyStepXML())
+
+        newJump.start_tick = time
+        newJump.end_tick = time
+        newJump.left_pos = noteCoordinates.MIN 
+        newJump.right_pos = noteCoordinates.MAX 
+        newJump.kind = StepTypes.JUMP.value 
+        newJump.player_id = PlayerID.JUMPDOWN.value
+
+        self.xml.sequence_data.append(newJump)
+
+        return newJump
+   
+    def addDown(self, time: Ticks):
+        if time < 0:
+            return Result.TIME_OUT_OF_BOUNDS
+
+        newDown = stepXML(createEmptyStepXML())
+
+        newDown.start_tick = time
+        newDown.end_tick = time
+        newDown.left_pos = noteCoordinates.MIN 
+        newDown.right_pos = noteCoordinates.MAX 
+        newDown.kind = StepTypes.DOWN.value 
+        newDown.player_id = PlayerID.JUMPDOWN.value
+
+        self.xml.sequence_data.append(newDown)
+
+        return newDown
 
     def save(self, filename: str) -> Result:
         return self.xml.write(filename)

@@ -104,10 +104,13 @@ some questions to ask:
                 observed values:
                     -Vfx
             <tick __type="s32">
+                -this doesn't affect some (all?) effects in an obvious way; in the case of sp3_led_01 it seems to have no bearing on when it starts
             <param>
                 <time __type="s32">
                     -this value appears to increase as we look at <extend> tags down the chart, so it likely counts from chart start (but what unit is this, ticks? seconds?)
                     -this is also observed (in 00263_1a) to often be less than the parent <extend> tag's tick value
+                    -observations:
+                        -for at least instances of sp3_led_01, this is the actual time when the effect starts
                 <kind __type="str">
                     observed values:
                         -Background
@@ -115,14 +118,30 @@ some questions to ask:
                         -OverEffect
                             -in at least 00263_1a this one is only used where layer_name == sp3_eff*
                 <layer_name __type="str">
-                    -this appears to take values that used to appear in <upbeat_data><upbeat><name> (see seq ver 8 for more on those)
+                    -this appears to take values that used to appear in <upbeat_data><upbeat><name> (see seq ver 8 for more on those)i
+                    -known values:
+                        -sp3_led_01: horizontal bars 'crawling' to the beati
+                        -sp3_led_02: vertical bars
+                        -sp3_led_03: entire background pulses
+                        -sp3_led_04: circles moving outward
+                        -sp3_led_05: big uhh things moving from the top of the screen to the bottom
+                        -sp3_led_06: similar to 05 but fades out slowly, looks like a heavier pulse
+                        -sp3_led_07: looks like a glittery burst, very pretty
+                        -sp3_led_08: like they took the explosion and stuck it in the background layer with different blending & made the whole bg flash on beat
+                        -sp3_led_09: triangles that pulse larger on beat
+                        -sp3_led_10: variously sized bars moving out from the note lane
+                        -sp3_led_11: arrows pulsing downward
                 <id __type="s32">
                     observed values: 9, 2, 1, 4, 11, 10, 3, 5
+                        -unclear what happens when we alter this
+                        -should investigate whether specific values of this tend to pair with specific effects
                 <lane __type="s32">
                     observed values: 0, 1, 3
+                        -setting this to nonzero for sp3_led_01 made the effect not play
                 <speed __type="s32">
                     observed values: 4, 2
                     in seq ver 8, the speed tag in <upbeat_data><upbeat> was three digits (200, 400), did this value become less granular?
+                        -observations: this is the division of a whole beat that the effect animtaes on (ie 1 = a whole beat, 2 = half a beat, 4 = quarter beats, etc)
                 <color>
                     <red>
                     <green>

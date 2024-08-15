@@ -7,8 +7,6 @@ import math
 
 
 SEQ_VER = 9
-#type Ticks = int
-#type Beats = Decimal
 Ticks = int
 Beats = Decimal
 
@@ -38,6 +36,24 @@ class PlayerID(Enum):
     PLAYER2 = 1
     JUMPDOWN = 4
 
+#Known good values for <extend><layer_name>
+#key == the actual layer_name, value == [the associated "kind" that tends to go with it, a description]
+layerNameValues = {
+    "sp3_eff01": ["OverEffect", "Fiery explosion"],
+    "sp3_eff02": ["OverEffect", "Explodey explosion"],
+    "sp3_eff03": ["OverEffect", "Shake"],
+    "sp3_led_01": ["Background", ""],
+    "sp3_led_02": ["Background", ""],
+    "sp3_led_03": ["Background", ""],
+    "sp3_led_04": ["Background", ""],
+    "sp3_led_05": ["Background", ""],
+    "sp3_led_06": ["Background", ""],
+    "sp3_led_07": ["Background", ""],
+    "sp3_led_08": ["Background", ""],
+    "sp3_led_09": ["Background", ""],
+    "sp3_led_10": ["Background", ""],
+    "sp3_led_11": ["Background", ""],
+}
 
 class BPM:
     def __init__(self, bpm: int, bpmDecimals = 0, timeSigDenomi = 4, timeSigNum = 4):

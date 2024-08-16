@@ -491,3 +491,22 @@ def createEmptyPointXML() -> xml.etree.ElementTree.Element:
 def appendEndPosXML(pointTag: xml.etree.ElementTree.Element):
     xml.etree.ElementTree.SubElement(pointTag, "left_end_pos", {"__type": "s32"})
     xml.etree.ElementTree.SubElement(pointTag, "right_end_pos", {"__type": "s32"})
+
+def createEmptyExtendXML() -> xml.etree.ElementTree.Element:
+    newExtend = xml.etree.ElementTree.Element("extend")
+
+    xml.etree.ElementTree.SubElement(newExtend, "type", {"__type": "str"})
+    xml.etree.ElementTree.SubElement(newExtend, "tick", {"__type": "s32"})
+
+    paramTag = xml.etree.ElementTree.SubElement(newExtend, "param")
+    xml.etree.ElementTree.SubElement(paramTag, "time", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(paramTag, "kind", {"__type": "str"})
+    xml.etree.ElementTree.SubElement(paramTag, "layer_name", {"__type": "str"})
+    xml.etree.ElementTree.SubElement(paramTag, "id", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(paramTag, "lane", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(paramTag, "speed", {"__speed": "s32"})
+
+    colorTag = xml.etree.ElementTree.SubElement(paramTag, "color")
+    xml.etree.ElementTree.SubElement(colorTag, "red", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(colorTag, "green", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(colorTag, "blue", {"__type": "s32"})

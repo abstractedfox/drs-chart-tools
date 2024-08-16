@@ -37,7 +37,7 @@ class PlayerID(Enum):
     JUMPDOWN = 4
 
 #Known good values for <extend><layer_name>
-#key == the actual layer_name, value == [the associated "kind" that tends to go with it, a description]
+#the actual layer_name: [the associated "kind" that tends to go with it, a description]
 layerNameValues = {
     "sp3_eff01": ["OverEffect", "Fiery explosion"],
     "sp3_eff02": ["OverEffect", "Explodey explosion"],
@@ -236,6 +236,16 @@ class Chart:
         self.xml.sequence_data.append(newDown)
 
         return newDown
+
+    def addEffect(self, layerName: str, time: Ticks):
+        if layerName not in layerNameValues.keys():
+            return Result.INVALID_LAYER_NAME
+
+        newEffect = createEmptyExtendXML()
+        newEffect.param.layer_name = layerName
+
+        #note to self: finish this
+
 
     def save(self, filename: str) -> Result:
         return self.xml.write(filename)

@@ -373,4 +373,5 @@ def test():
 
     database.write("database-modified-test.xml")
 
-test()
+if __name__ == "__main__":
+    test()

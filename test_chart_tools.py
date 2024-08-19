@@ -40,7 +40,7 @@ def makeDummyChart():
     noteSize = sizeUnit(int(65536 / 4))
 
     for i in range(8, 100):
-        testChart.addNote(noteSize, getPosition(noteSize, (65536 / 4) + ((i % 2) * (65536 / 4))), i, PlayerID.PLAYER1, StepTypes.LEFT)
+        testChart.addNote(noteSize, getPosition(noteSize, (65536 / 4) + ((i % 2) * (65536 / 4))), beatsToTicks(i, testChart.timeUnit), PlayerID.PLAYER1, StepTypes.LEFT)
 
     return testChart
 
@@ -53,41 +53,41 @@ def makeCompleteChart():
 
     noteSize = sizeUnit(int(65536/4))
 
-    currentBeat = 4
-
+    currentBeat = 8
+    
     locationLeft = getPosition(noteSize, 65535/4)
     locationRight = getPosition(noteSize, 2*(65535/4))
 
     #Four alternating stpes on every other beat 
     for i in range(0, 8, 2):
         if i % 4 == 0:
-            testChart.addNote(noteSize, getPosition(noteSize, (65536 / 4) + ((i % 4) * (65536 / 4))), currentBeat, PlayerID.PLAYER1, StepTypes.LEFT)
+            testChart.addNote(noteSize, getPosition(noteSize, (65536 / 4) + ((i % 4) * (65536 / 4))), beatsToTicks(currentBeat, testChart.timeUnit), PlayerID.PLAYER1, StepTypes.LEFT)
         elif i % 2 == 0:
-            testChart.addNote(noteSize, getPosition(noteSize, (65536 / 4) + ((i % 2) * (65536 / 4))), currentBeat, PlayerID.PLAYER1, StepTypes.RIGHT)
+            testChart.addNote(noteSize, getPosition(noteSize, (65536 / 4) + ((i % 2) * (65536 / 4))), beatsToTicks(currentBeat, testChart.timeUnit), PlayerID.PLAYER1, StepTypes.RIGHT)
         currentBeat += 1
 
     currentBeat += 2
 
     #A left foot hold and then right foot hold for 2 beats each
-    leftStep = testChart.addNote(noteSize, locationLeft, currentBeat, PlayerID.PLAYER1, StepTypes.LEFT)
+    leftStep = testChart.addNote(noteSize, locationLeft, beatsToTicks(currentBeat, testChart.timeUnit), PlayerID.PLAYER1, StepTypes.LEFT)
     testChart.addLongPoint(leftStep, beatsToTicks(2, testChart.timeUnit))
     
     currentBeat += 2
     
-    rightStep = testChart.addNote(noteSize, locationRight, currentBeat, PlayerID.PLAYER1, StepTypes.RIGHT)
+    rightStep = testChart.addNote(noteSize, locationRight, beatsToTicks(currentBeat, testChart.timeUnit), PlayerID.PLAYER1, StepTypes.RIGHT)
     testChart.addLongPoint(rightStep, beatsToTicks(2, testChart.timeUnit))
 
     #A left foot hold for 1 beat that slides right on the 2nd beat, then the opposite of that
     currentBeat += 2
     
-    leftStep = testChart.addNote(noteSize, locationLeft, currentBeat, PlayerID.PLAYER1, StepTypes.LEFT)
+    leftStep = testChart.addNote(noteSize, locationLeft, beatsToTicks(currentBeat, testChart.timeUnit), PlayerID.PLAYER1, StepTypes.LEFT)
     testChart.addLongPoint(leftStep, beatsToTicks(1, testChart.timeUnit)) 
     pointToMove = testChart.addLongPoint(leftStep, beatsToTicks(1, testChart.timeUnit))
     testChart.movePoint(leftStep, pointToMove, locationRight)
 
     currentBeat += 2
     
-    rightStep = testChart.addNote(noteSize, locationRight, currentBeat, PlayerID.PLAYER1, StepTypes.RIGHT)
+    rightStep = testChart.addNote(noteSize, locationRight, beatsToTicks(currentBeat, testChart.timeUnit), PlayerID.PLAYER1, StepTypes.RIGHT)
     testChart.addLongPoint(rightStep, beatsToTicks(1, testChart.timeUnit))
     pointToMove = testChart.addLongPoint(rightStep, beatsToTicks(1, testChart.timeUnit))
     testChart.movePoint(rightStep, pointToMove, locationLeft)
@@ -95,13 +95,13 @@ def makeCompleteChart():
     #A left foot hold for 1 beat terminating in a right swipe, a right foot hold for 1 beat terminating in a left swipe
     currentBeat += 2
     
-    leftStep = testChart.addNote(noteSize, locationLeft, currentBeat, PlayerID.PLAYER1, StepTypes.LEFT)
+    leftStep = testChart.addNote(noteSize, locationLeft, beatsToTicks(currentBeat, testChart.timeUnit), PlayerID.PLAYER1, StepTypes.LEFT)
     pointToSwipe = testChart.addLongPoint(leftStep, beatsToTicks(1, testChart.timeUnit)) 
     testChart.addSwipe(leftStep, pointToSwipe, locationRight) 
 
     currentBeat += 2
     
-    rightStep = testChart.addNote(noteSize, locationRight, currentBeat, PlayerID.PLAYER1, StepTypes.RIGHT)
+    rightStep = testChart.addNote(noteSize, locationRight, beatsToTicks(currentBeat, testChart.timeUnit), PlayerID.PLAYER1, StepTypes.RIGHT)
     pointToSwipe = testChart.addLongPoint(rightStep, beatsToTicks(1, testChart.timeUnit))
     testChart.addSwipe(rightStep, pointToSwipe, locationLeft)
 
@@ -113,8 +113,38 @@ def makeCompleteChart():
     #A down
     currentBeat += 2
     testChart.addDown(beatsToTicks(currentBeat, testChart.timeUnit))
+
+    effectDuration = 8
+
+    #Effects
+    #We'll add a step to each one to visually delineate where each one begins
+   
+    for layer in layerNameValues:
+        currentBeat += effectDuration
+        if layerNameValues[layer][0] == "Background":
+            testChart.addEffect(layer, beatsToTicks(currentBeat, testChart.timeUnit), 2, r = 255, g = 255, b = 255)
+        elif layerNameValues[layer][0] == "OverEffect":
+            testChart.addEffect(layer, beatsToTicks(currentBeat, testChart.timeUnit), 4)
+        else:
+            testChart.addEffect(layer, beatsToTicks(currentBeat, testChart.timeUnit), 2)
+           
+        noteSize = noteCoordinates()
+        noteSize.left = noteCoordinates.MIN
+        noteSize.right = noteCoordinates.MAX
+
+        testChart.addNote(0, noteSize, beatsToTicks(currentBeat, testChart.timeUnit), PlayerID.PLAYER1, StepTypes.LEFT)
+
+
+    #one last note so the chart doesn't end before the effects 
+    currentBeat += effectDuration
+    testChart.addJump(beatsToTicks(currentBeat, testChart.timeUnit))
     
     return testChart
+
+
+def generateEffectSyncTest():
+    testChart = Chart() 
+
 
 def generateTestChart():
     testChart = makeDummyChart()

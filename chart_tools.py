@@ -37,22 +37,28 @@ class PlayerID(Enum):
     JUMPDOWN = 4
 
 #Known good values for <extend><layer_name>
-#the actual layer_name: [the associated "kind" that tends to go with it, a description]
+#the actual layer_name: [the associated "kind" that tends to go with it, a description, value for <id>]
 layerNameValues = {
-    "sp3_eff01": ["OverEffect", "Fiery explosion"],
-    "sp3_eff02": ["OverEffect", "Explodey explosion"],
-    "sp3_eff03": ["OverEffect", "Shake"],
-    "sp3_led_01": ["Background", ""],
-    "sp3_led_02": ["Background", ""],
-    "sp3_led_03": ["Background", ""],
-    "sp3_led_04": ["Background", ""],
-    "sp3_led_05": ["Background", ""],
-    "sp3_led_06": ["Background", ""],
-    "sp3_led_07": ["Background", ""],
-    "sp3_led_08": ["Background", ""],
-    "sp3_led_09": ["Background", ""],
-    "sp3_led_10": ["Background", ""],
-    "sp3_led_11": ["Background", ""],
+    "sp3_eff01": ["OverEffect", "Fiery explosion", 1],
+    "sp3_eff02": ["OverEffect", "Explodey explosion", 2],
+    "sp3_eff03": ["OverEffect", "Shake", 3],
+    "sp3_led_01": ["Background", "", 1],
+    "sp3_led_02": ["Background", "", 2],
+    "sp3_led_03": ["Background", "", 3],
+    "sp3_led_04": ["Background", "", 4],
+    "sp3_led_05": ["Background", "", 5],
+    "sp3_led_06": ["Background", "", 6],
+    "sp3_led_07": ["Background", "", 7],
+    "sp3_led_08": ["Background", "", 8],
+    "sp3_led_09": ["Background", "", 9],
+    "sp3_led_10": ["Background", "", 10],
+    "sp3_led_11": ["Background", "", 11],
+    "sp3_led_12": ["Background", "", 12],
+    "sp3_eff01_b01": ["MiddleEffect", "", 1],
+    "sp3_eff01_b02": ["MiddleEffect", "", 2],
+    "sp3_eff03_b01": ["MiddleEffect", "", 3],
+    "sp3_eff03_b02": ["MiddleEffect", "", 4],
+    "sp3_eff03_b03": ["MiddleEffect", "", 4]
 }
 
 class BPM:
@@ -96,11 +102,6 @@ class noteCoordinates:
         self.right = int(value)
 
 
-
-#A 'size' for an individual note
-#class sizeUnit:
-#    def __init__(self, size = 10000):
-#        self.size = size
 sizeUnit = int
 
 
@@ -155,8 +156,7 @@ class Chart:
 
         return Result.SUCCESS
 
-    def addNote(self, noteSize: sizeUnit, position: noteCoordinates, time: Beats, playerID: PlayerID, stepType: StepTypes):
-        time = beatsToTicks(time, self.timeUnit)
+    def addNote(self, noteSize: sizeUnit, position: noteCoordinates, time: Ticks, playerID: PlayerID, stepType: StepTypes):
         if time < 0:
             return Result.TIME_OUT_OF_BOUNDS
         
@@ -237,15 +237,37 @@ class Chart:
 
         return newDown
 
-    def addEffect(self, layerName: str, time: Ticks):
+    #It isn't currently clear what the param_id (named for the <id> tag inside <param>), lane, and 'tick' (for <extend><tick>) tags do, but these defaults appear to function fine 
+    def addEffect(self, layerName: str, time: Ticks, speed: int, r = 0, g = 0, b = 0, extend_type = "Vfx", param_id = int(1), lane = int(0), tick = int(0)):
         if layerName not in layerNameValues.keys():
             return Result.INVALID_LAYER_NAME
 
-        newEffect = createEmptyExtendXML()
+        newEffect = extendTagXML(createEmptyExtendXML())
+        newEffect.type_tag = extend_type
         newEffect.param.layer_name = layerName
+        newEffect.param.time = time
+        newEffect.param.kind = layerNameValues[newEffect.param.layer_name][0]
+        newEffect.param.speed = speed
 
-        #note to self: finish this
+        #The <color> tag only exists for Background effects
+        if layerNameValues[layerName][0] == "Background":
+            if len([x for x in [r ,g, b] if x > -1 and x < 256]) != 3:
+                return Result.COLOR_OUT_OF_RANGE
+            
+            appendColorTagXML(newEffect.param.innerElement)
 
+            newEffect.param.color.red = r
+            newEffect.param.color.green = g
+            newEffect.param.color.blue = b
+
+        newEffect.param.id = layerNameValues[layerName][2]
+        newEffect.param.lane = lane
+        #newEffect.tick = tick
+        newEffect.tick = time
+
+        self.xml.extend_data.append(newEffect)
+
+        return newEffect
 
     def save(self, filename: str) -> Result:
         return self.xml.write(filename)

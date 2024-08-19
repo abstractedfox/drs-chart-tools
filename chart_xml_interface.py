@@ -316,10 +316,10 @@ class extendTagXML:
         self.innerElement = extendTag
 
     @property
-    def type(self):
+    def type_tag(self):
         return self.innerElement.find("type").text
-    @type.setter
-    def type(self, value):
+    @type_tag.setter
+    def type_tag(self, value):
         self.innerElement.find("type").text = str(value)
 
     @property
@@ -492,6 +492,14 @@ def appendEndPosXML(pointTag: xml.etree.ElementTree.Element):
     xml.etree.ElementTree.SubElement(pointTag, "left_end_pos", {"__type": "s32"})
     xml.etree.ElementTree.SubElement(pointTag, "right_end_pos", {"__type": "s32"})
 
+def appendColorTagXML(paramTag: xml.etree.ElementTree.Element): 
+    colorTag = xml.etree.ElementTree.SubElement(paramTag, "color")
+    xml.etree.ElementTree.SubElement(colorTag, "red", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(colorTag, "green", {"__type": "s32"})
+    xml.etree.ElementTree.SubElement(colorTag, "blue", {"__type": "s32"})
+
+    return colorTag
+
 def createEmptyExtendXML() -> xml.etree.ElementTree.Element:
     newExtend = xml.etree.ElementTree.Element("extend")
 
@@ -504,9 +512,11 @@ def createEmptyExtendXML() -> xml.etree.ElementTree.Element:
     xml.etree.ElementTree.SubElement(paramTag, "layer_name", {"__type": "str"})
     xml.etree.ElementTree.SubElement(paramTag, "id", {"__type": "s32"})
     xml.etree.ElementTree.SubElement(paramTag, "lane", {"__type": "s32"})
-    xml.etree.ElementTree.SubElement(paramTag, "speed", {"__speed": "s32"})
+    xml.etree.ElementTree.SubElement(paramTag, "speed", {"__type": "s32"})
 
-    colorTag = xml.etree.ElementTree.SubElement(paramTag, "color")
-    xml.etree.ElementTree.SubElement(colorTag, "red", {"__type": "s32"})
-    xml.etree.ElementTree.SubElement(colorTag, "green", {"__type": "s32"})
-    xml.etree.ElementTree.SubElement(colorTag, "blue", {"__type": "s32"})
+    #colorTag = xml.etree.ElementTree.SubElement(paramTag, "color")
+    #xml.etree.ElementTree.SubElement(colorTag, "red", {"__type": "s32"})
+    #xml.etree.ElementTree.SubElement(colorTag, "green", {"__type": "s32"})
+    #xml.etree.ElementTree.SubElement(colorTag, "blue", {"__type": "s32"})
+
+    return newExtend

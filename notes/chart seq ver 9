@@ -197,7 +197,15 @@ things to specifically seek out:
 questions:
     -<bpm> tags have a <tick> value the same way <measure> tags do. can we define more than one if a song changes bpm?
 
+effects questions:
+    -i notice that in many cases (looking at 00204 'the gamehacker' as one example) two identical effects will start at the same time on different <lane>s. are the lanes individual layers which can each contain effects? if we start two effects at the same time on two different layers, will we see them both?
+    -if we test the same chart three times, where we set a note and an effect to play 8 beats in, where on each test, we try the effect with an early, late, and identical <time> to its <tick>, will it appear at a different time relative to the note on each try?
+
 assumptions to test/verify/disprove:
     -the game calculates timing based on the given bpm, and the value defined in time_unit is used to represent either a single beat or a full measure (need to test)
         -test: if we make a chart that is 60bpm, set tick to 480, and put a note every 480 ticks, there willbe one note every second
         -test: if we change time_unit of an existing chart to twice its value, the chart should play twice as fast
+
+notes/misc/ghidra:
+    -i think we accidentally found the function that parses charts, 18067e920 in 2022
+    -i also think we found the function that parses <extend> tags, 180247aa0 in 2022

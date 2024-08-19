@@ -156,7 +156,7 @@ class Chart:
 
         return Result.SUCCESS
 
-    def addNote(self, noteSize: sizeUnit, position: noteCoordinates, time: Ticks, playerID: PlayerID, stepType: StepTypes):
+    def addNote(self, position: noteCoordinates, time: Ticks, playerID: PlayerID, stepType: StepTypes):
         if time < 0:
             return Result.TIME_OUT_OF_BOUNDS
         

@@ -123,9 +123,8 @@ class Chart:
             self.xml = chartRootXML(xml)
         else:
             self.xml = chartRootXML(createEmptyChartXML())
-
-        self.xml.info.time_unit = timeUnit
-        self.xml.info.end_tick = endTick
+            self.xml.info.time_unit = timeUnit
+            self.xml.info.end_tick = endTick
 
     @property
     def timeUnit(self):
@@ -142,6 +141,9 @@ class Chart:
         if bpm.bpm < 0:
             return Result.BPM_OUT_OF_BOUNDS 
 
+        if bpm in self.xml.info.bpm_info:
+            return Result.TICK_CONFLICT
+
         newBPM = bpmXML(createEmptyBPMXML())
         newBPM.tick = time
         newBPM.bpm = bpm.getBPMFormatted()
@@ -155,6 +157,7 @@ class Chart:
         self.xml.info.measure_info.append(newMeasure)
 
         return Result.SUCCESS
+
 
     def addNote(self, position: noteCoordinates, time: Ticks, playerID: PlayerID, stepType: StepTypes):
         if time < 0:
@@ -268,6 +271,9 @@ class Chart:
         self.xml.extend_data.append(newEffect)
 
         return newEffect
+
+    def getRawXML(self):
+        return self.xml.write()
 
     def save(self, filename: str) -> Result:
         return self.xml.write(filename)

@@ -51,17 +51,42 @@ class IXMLCollection:
 
         return self[indexToReturn]
 
+    def __eq__(self, compareTo):
+        if len(self) != len(compareTo):
+            return False
+        for item in self:
+            if item not in compareTo:
+                return False
+
+        return True
+
     def append(self, newObject: collectionType):
         self.innerElement.append(newObject.innerElement)
         return self[-1]
 
     def remove(self, removeObject: collectionType):
-        self.innerElement.remove(removeObject.innerElement)
+        #self.innerElement.remove(removeObject.innerElement)
+        for item in self:
+            if removeObject == item:
+                self.innerElement.remove(item.innerElement)
+                return Result.SUCCESS
+
+        return Result.NO_ACTION
+
+    def getElement(self, element):
+        for item in self:
+            if item == element:
+                return item
+
+        return None
 
 
 class bpmXML:
     def __init__(self, bpmTag: xml.etree.ElementTree.Element):
         self.innerElement = bpmTag
+
+    def __eq__(self, compareTo):
+        return self.tick == compareTo.tick and self.bpm == compareTo.bpm
 
     @property
     def tick(self):
@@ -81,6 +106,9 @@ class bpmXML:
 class measureXML:
     def __init__(self, measureTag: xml.etree.ElementTree.Element):
         self.innerElement = measureTag
+
+    def __eq__(self, compareTo):
+        return self.tick == compareTo.tick and self.num == compareTo.num and self.denomi == compareTo.denomi
 
     @property
     def tick(self):
@@ -187,6 +215,9 @@ class stepXML:
     def __init__(self, stepTag: xml.etree.ElementTree.Element):
         self.innerElement = stepTag
 
+    def __eq__(self, compareTo):
+        return self.start_tick == compareTo.start_tick and self.end_tick == compareTo.end_tick and self.left_pos == compareTo.left_pos and self.right_pos == compareTo.right_pos and self.kind == compareTo.kind and self.player_id == compareTo.player_id and self.long_point == compareTo.long_point
+
     @property
     def start_tick(self):
         return int(self.innerElement.find("start_tick").text)
@@ -238,6 +269,9 @@ class colorTagXML:
     def __init__(self, colorTag: xml.etree.ElementTree.Element):
         self.innerElement = colorTag
 
+    def __eq__(self, compareTo):
+        return self.red == compareTo.red and self.green == compareTo.green and self.blue == compareTo.blue
+
     @property
     def red(self):
         return self.innerElement.find("red").text
@@ -263,6 +297,9 @@ class colorTagXML:
 class paramTagXML:
     def __init__(self, paramTag: xml.etree.ElementTree.Element):
         self.innerElement = paramTag
+
+    def __eq__(self, compareTo):
+        return self.time == compareTo.time and self.kind == compareTo.kind and self.layer_name == compareTo.layer_name and self.id == compareTo.id and self.lane == compareTo.lane and self.speed == compareTo.speed and (~(self.color is None ^ compareTo.color is None) or (self.color is not None and compareTo.color is not None and self.color == compareTo.color))
 
     @property
     def time(self):
@@ -315,6 +352,9 @@ class extendTagXML:
     def __init__(self, extendTag: xml.etree.ElementTree.Element):
         self.innerElement = extendTag
 
+    def __eq__(self, compareTo):
+        return self.type_tag == compareTo.type_tag and self.tick == compareTo.tick and self.param == compareTo.param
+    
     @property
     def type_tag(self):
         return self.innerElement.find("type").text

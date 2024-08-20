@@ -14,3 +14,8 @@ class Result(Enum):
     INVALID_LONG_POINT = 10
     INVALID_LAYER_NAME = 11
     COLOR_OUT_OF_RANGE = 12
+    CHART_PARSING_ERROR = 13
+    CHART_NOT_LOADED = 14
+    NO_ACTION = 15
+    TICK_CONFLICT = 16 #for trying to add elements that there can only be one of per tick, such as a bpm, when there is already one there
+    BPM_DOESNT_EXIST = 17

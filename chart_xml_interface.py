@@ -165,7 +165,7 @@ class pointXML:
         self.innerElement = pointTag
 
     def __eq__(self, compareTo):
-        return self.tick == compareTo.tick and self.left_pos == compareTo.left_pos and self.right_pos == compareTo.right_pos and ~((self.left_end_pos is None) ^ (self.left_end_pos is None)) and ~((self.right_end_pos is None) ^ (compareTo.right_end_pos is None)) and self.left_end_pos == compareTo.left_end_pos and self.right_end_pos == compareTo.right_end_pos 
+        return self.tick == compareTo.tick and self.left_pos == compareTo.left_pos and self.right_pos == compareTo.right_pos and not ((self.left_end_pos is None) ^ (self.left_end_pos is None)) and not ((self.right_end_pos is None) ^ (compareTo.right_end_pos is None)) and self.left_end_pos == compareTo.left_end_pos and self.right_end_pos == compareTo.right_end_pos 
 
     @property
     def tick(self):

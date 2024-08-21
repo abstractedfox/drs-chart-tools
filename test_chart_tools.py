@@ -1,5 +1,8 @@
 from chart_tools import *
 from common import *
+#from chart_tools_api import *
+import chart_tools_api
+
 import xml.etree.ElementTree
 import sys
 import unittest
@@ -183,7 +186,7 @@ class TestChartXMLInterface(unittest.TestCase):
         self.assertEqual(testChart.xml.info.measure_info.removeAtIndex(0), Result.SUCCESS, "Valid measure index can be removed")
 
     #Remove every other step from a chart
-    def testsequenceDataRemoveSteps(self):
+    def testsequenceDataRemoveSteps_XML(self):
         testChart = makeDummyChart()
 
         i = 0
@@ -201,6 +204,84 @@ class TestChartXMLInterface(unittest.TestCase):
 
         self.assertEqual(len(testChart.xml.sequence_data), int(92/2), "Removing every other note leaves 46 notes")
 
+    #Test element removals by value (ie how it works when we do it through the api)
+    def testRemoveByValue(self):
+        testChart = makeDummyChart()
+
+        removeStep = stepXML(createEmptyStepXML())
+        removeStep.start_tick = 4800
+        removeStep.end_tick = 4800
+        removeStep.left_pos = 16384
+        removeStep.right_pos = 32768
+        removeStep.kind = 1
+        removeStep.player_id = 0
+
+        self.assertEqual(testChart.steps[2].start_tick, removeStep.start_tick)
+        self.assertEqual(testChart.steps[2], removeStep)
+        self.assertEqual(testChart.removeNote(removeStep), Result.SUCCESS, "start_tick " + str(removeStep.start_tick) + " " + str(testChart.steps[2].start_tick) + " end_tick " + str(removeStep.end_tick) + " " + str(testChart.steps[2].end_tick) + " left_pos " + str(removeStep.left_pos) + " " +  str(testChart.steps[2].left_pos) + " right_pos " + str(removeStep.right_pos) + " " + str(testChart.steps[2].right_pos) + " kind " + str(removeStep.kind) + " " + str(testChart.steps[2].kind) + " player_id " + str(removeStep.player_id) + " " + str(testChart.steps[2].player_id))
+        self.assertNotEqual(testChart.steps[2].start_tick, removeStep.start_tick)
+
+        #make sure we cant remove an invalid BPM
+        badBPM = bpmXML(createEmptyBPMXML())
+        badBPM.tick = 0
+        badBPM.bpm = 12345
+        self.assertEqual(testChart.removeBPM(badBPM), Result.NO_ACTION)
+        
+        badBPM.bpm = 12100
+        badBPM.tick = 100
+        self.assertEqual(testChart.removeBPM(badBPM), Result.NO_ACTION)
+
+        #remove a BPM
+        newBPM = bpmXML(createEmptyBPMXML())
+        newBPM.tick = 0
+        newBPM.bpm = 12100
+        self.assertEqual(testChart.removeBPM(newBPM), Result.SUCCESS)
+        self.assertEqual(len(testChart.xml.info.bpm_info), 0)
+        
+        #cant remove invalid measure
+        badMeasure = measureXML(createEmptyMeasureXML())
+        badMeasure.tick = 10
+        badMeasure.num = 5
+        badMeasure.denomi = 4
+
+        self.assertEqual(testChart.removeMeasure(badMeasure), Result.NO_ACTION)
+
+        newMeasure = measureXML(createEmptyMeasureXML())
+        newMeasure.tick = 0
+        newMeasure.num = 4
+        newMeasure.denomi = 4
+
+        self.assertEqual(testChart.removeMeasure(newMeasure), Result.SUCCESS)
+        self.assertEqual(len(testChart.xml.info.measure_info), 0)
+
+        #add a long point, then remove it
+        testChart.addLongPoint(testChart.steps[4], 100)
+        self.assertEqual(len(testChart.steps[4].long_point), 1)
+        
+        #can't remove valid long_point when the step doesn't exist in the chart
+        badStep = stepXML(createEmptyStepXML())
+        badStep.start_tick = 10
+        badStep.end_tick = 10
+        badStep.left_pos = 10
+        badStep.right_pos = 10
+        badStep.kind = 1
+        badStep.player_id = 0
+
+        self.assertEqual(testChart.removeLongPoint(badStep, testChart.steps[4].long_point[0]), Result.NO_ACTION)
+
+        #can't remove invalid point
+        badPoint = pointXML(createEmptyPointXML())
+        badPoint.tick = 10
+        badPoint.left_pos = 10
+        badPoint.right_pos = 10
+
+        self.assertEqual(testChart.removeLongPoint(testChart.steps[4], badPoint), Result.NO_ACTION)
+        self.assertEqual(len(testChart.steps[4].long_point), 1)
+
+        #remove valid point
+        self.assertEqual(testChart.removeLongPoint(testChart.steps[4], testChart.steps[4].long_point[0]), Result.SUCCESS)
+        self.assertEqual(len(testChart.steps[4].long_point), 0)
+
 
 class TestCharts(unittest.TestCase):
     def testTestChart1(self):
@@ -209,6 +290,41 @@ class TestCharts(unittest.TestCase):
 
             self.assertEqual(md5out, testchart1md5sum, "testchart1.xml checksum == expected checksum")
 
+
+    def testAPI(self):
+        session = chart_tools_api.Session()
+
+        command = chart_tools_api.parse_command("chart load testchart1.xml")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        self.assertIsNotNone(session.chart)
+
+        command = chart_tools_api.parse_command("bpm add 57300 0")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+
+        command = chart_tools_api.parse_command("bpm remove 57300 0")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        
+        command = chart_tools_api.parse_command("note add 100 100 100 200 1 0")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+       
+        command = chart_tools_api.parse_command("note remove 100 100 100 200 1 0")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+      
+        command = chart_tools_api.parse_command("measure add 4 4 10")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        
+        command = chart_tools_api.parse_command("measure remove 4 4 10")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+
+        command = chart_tools_api.parse_command("chart save apisavetest.xml")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        
+        command = chart_tools_api.parse_command("chart get")
+        chartResponse = chart_tools_api.dispatch_command(command, session)
+        self.assertEqual(chartResponse.split('\n')[0], "note 3840 3840 16384 32768 1 0", "First line of api 'chart get' response")
+
+    def testCommandLine(self):
+        commandline = "python3.12 chart_tools_api.py init testyy.xml : bpm add 57300 0"
 
 if __name__ == "__main__":
     generateCompleteChart()

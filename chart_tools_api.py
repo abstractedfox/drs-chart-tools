@@ -1,89 +1,175 @@
 from chart_tools import *
-
-chart = None
+import sys
 
 class command_struct:
-    commands = {
+     def __init__(self):
+         self.attribute = None #Attribute to alter
+         self.command = None #Command to do to that attribute 
+         self.args = [] #Any relevant arguments
+         self.unparsed = None #The command unparsed (for useful debugging)
+
+     commands = {
         "add": "add",
         "change": "change",
         "remove" :"remove",
         "get": "get",
         "load": "load",
         "init" : "init",
+        "save": "save",
         "usage": "usage"
     }
 
-    self.attribute = None #Attribute to alter
-    self.command = None #Command to do to that attribute 
-    self.args = [] #Any relevant arguments
+class Session:
+    def __init__(self):
+        self.chart = None
 
 
-
-#things to test:
-#bpm parsing works (when there is no decimal) (when there are more than two places after the decimal (extras are ignored))
-#function fails (when you add a bpm at a tick where there is already a bpm) (bpm is out of range) (removing a bpm that doesnt exist)
-#function succeeds (adding multiple bpms to a song)
-def change_bpm(args: command_struct):
-    bpmsliced = args.args[0].split(".")
-    newBPM = BPM(int(bpmspliced[0]))
-    if len(bpmsliced) == 2:
-        newBPM.bpmDecimals = bpmsliced[1][0:2]
-
-    newBPM.timeSigNum = args[1]
-    bpm.timeSigDenomi = args[2]
-    tick = args[3]
-
-    if args.command == command_struct.commands["add"]:
-        return chart.addBPM(newBPM, tick) 
-
-    if args.command == command_struct.commands["remove"]:
-        return Result.NO_ACTION 
-
-    if args.command == command_struct.commands["change"]:
-        return Result.NO_ACTION
-
-    print("Usage: bpm (add, change, remove) (bpm, supports up to 2 decimal places) (time signature numerator) (time signature denominator) (tick from which this bpm applies)")
-
-def change_chart(args: command_struct): 
-    if args.command == command_struct.commands["load"]:
+def change_chart(command: command_struct, session: Session): 
+    if command.command == command_struct.commands["load"]:
         try:
-            chart = xml.etree.ElementTree.parse(pathToChart).getroot()
+            session.chart = Chart(xml.etree.ElementTree.parse(command.args[0]).getroot())
         except:
             return Result.CHART_PARSING_ERROR
 
         return Result.SUCCESS
 
-    if args.command == command_struct.commands["init"]:
-        chart = Chart()
+    if command.command == command_struct.commands["init"]:
+        session.chart = Chart()
         return Result.SUCCESS
-    
-    print("Usage: chart (load, init) (chart to load, if applicable)")    
+
+    if command.command == command_struct.commands["get"]:
+        response = ""
+        for note in session.chart.steps:
+            response += "note {} {} {} {} {} {}\n".format(note.start_tick, note.end_tick, note.left_pos, note.right_pos, note.kind, note.player_id)
+
+        return response
+
+    if command.command == command_struct.commands["save"]:
+        return session.chart.save(command.args[0]) 
+
+    print("Usage: chart (load, init, save) (chart to load if applicable / filename of chart to save)")    
     return Result.NO_ACTION
 
 
+def note(command: command_struct, session: Session):
+    thisNote = stepXML(createEmptyStepXML())
+    thisNote.start_tick = command.args[0]
+    thisNote.end_tick = command.args[1]
+    thisNote.left_pos = command.args[2]
+    thisNote.right_pos = command.args[3]
+    thisNote.kind = command.args[4]
+    thisNote.player_id = command.args[5]
+
+    if command.command == command_struct.commands["add"]:
+        return session.chart.addNoteRaw(thisNote) 
+
+    if command.command == command_struct.commands["remove"]:
+        return session.chart.removeNote(thisNote) 
+    
+    print("Usage: note (add, remove) start_tick end_tick left_pos right_pos kind player_id")
+
+
+def change_bpm(command: command_struct, session: Session):
+    bpmsliced = command.args[0].split(".")
+    newBPM = BPM(int(bpmsliced[0]))
+    if len(bpmsliced) == 2:
+        newBPM.bpmDecimals = bpmsliced[1][0:2]
+
+    try:
+        bpmraw = int(command.args[0])
+        tick = command.args[1]
+    except ValueError:
+        return Result.TYPE_ERROR 
+
+    if command.command == command_struct.commands["add"]:
+        return session.chart.addBPM_Raw(bpmraw, tick)
+
+    if command.command == command_struct.commands["remove"]:
+        removeBPM = bpmXML(createEmptyBPMXML())
+        removeBPM.tick = tick
+        removeBPM.bpm = bpmraw
+        return session.chart.removeBPM(removeBPM)
+
+    print("Usage: bpm (add, remove) (bpm) (tick from which this bpm applies)")
+
+def measure(command: command_struct, session: Session):
+    newMeasure = measureXML(createEmptyMeasureXML())
+    newMeasure.num = command.args[0]
+    newMeasure.denomi = command.args[1]
+    newMeasure.tick = command.args[2]
+
+    if command.command == command_struct.commands["add"]:
+        return session.chart.addMeasureRaw(newMeasure)
+
+    if command.command == command_struct.commands["remove"]:
+        return session.chart.removeMeasure(newMeasure)
+
+    print("Usage: measure (add, remove) numerator denominator (starting tick)")   
+    return Result.NO_ACTION
+
 functionMap = {
     "chart": change_chart,
-    "note": "note",
-    "jump": "jump",
-    "down": "down",
+    "note": note,
     "bpm": change_bpm,
-    "measure": None
-    "time_unit": "time_unit"
+    "measure": measure,
+    "time_unit": None
 }
 
 
-def dispatch_command(command: str, args: list) -> str:
-    if command not in functionMap.keys():
-        return "Invalid command"
+def dispatch_command(command: command_struct, session: Session):
+    if command.attribute not in functionMap.keys():
+        return "Invalid command: " + str(command.attribute)
     
-    if chart is None and command != "init" or command != "set_chart":
+    if session.chart is None and not (command.command == command_struct.commands["load"] or command.command == command_struct.commands["init"]): 
         return Result.CHART_NOT_LOADED
 
+    return functionMap[command.attribute](command, session)
 
-    functions[command](args)
 
-    return "asdf"
+def parse_command(command: str):
+    split = command.split()
+    parsedCommand = command_struct()
+    parsedCommand.attribute = split[0]
+    parsedCommand.command = split[1]
+    parsedCommand.args = split[2:]
+    parsedCommand.unparsed = command
+
+    return parsedCommand
 
 
 if __name__ == "__main__":
-    pass
+    session = Session()
+  
+    if sys.argv[1] != "init":
+        result = change_chart(parse_command("chart load {}".format(sys.argv[1])), session)
+    else:
+        result = change_chart(parse_command("chart init"), session) 
+
+    if result != Result.SUCCESS:
+        print(result)
+        exit()
+
+    command = ""
+    for arg in sys.argv[3:]:
+        if arg == ":":
+            if command != "":
+                result = dispatch_command(parse_command(command), session)
+                if type(result) == str:
+                    print(result)
+                elif result != Result.SUCCESS:
+                    print(result)
+                    break
+
+            command = ""
+            continue
+
+        command += arg + " "
+
+    dispatch_command(parse_command(command), session)
+
+    if type(result) == str:
+        print(result)
+    elif result != Result.SUCCESS:
+        print(result)
+
+    session.chart.save(sys.argv[2])

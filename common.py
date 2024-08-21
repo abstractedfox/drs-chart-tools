@@ -19,3 +19,7 @@ class Result(Enum):
     NO_ACTION = 15
     TICK_CONFLICT = 16 #for trying to add elements that there can only be one of per tick, such as a bpm, when there is already one there
     BPM_DOESNT_EXIST = 17
+    MEASURE_OUT_OF_BOUNDS=18
+    TYPE_ERROR=19
+    INVALID_PLAYER_ID = 20
+    INVALID_STEP = 21

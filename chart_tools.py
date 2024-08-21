@@ -4,6 +4,7 @@ from common import *
 from enum import Enum
 from decimal import *
 import math
+import io
 
 
 SEQ_VER = 9
@@ -158,6 +159,43 @@ class Chart:
 
         return Result.SUCCESS
 
+    def addBPM_Raw(self, bpm: int, time: Ticks):
+        if bpm < 0:
+            return Result.BPM_OUT_OF_BOUNDS
+
+        newBPM = bpmXML(createEmptyBPMXML())
+        newBPM.tick = time
+        newBPM.bpm = bpm
+
+        self.xml.info.bpm_info.append(newBPM)
+        return Result.SUCCESS
+
+    def addMeasure(self, time: Ticks, num: int, denomi: int):
+        if time < 0 or num < 1 or denomi < 1:
+            return Result.MEASURE_OUT_OF_BOUNDS
+
+        newMeasure = measureXML(createEmptyMeasureXML())
+        newMeasure.tick = time
+        newMeasure.num = num 
+        newMeasure.denomi = denomi 
+
+        self.xml.info.measure_info.append(newMeasure)
+        
+        return Result.SUCCESS
+
+    def addMeasureRaw(self, measure: measureXML):
+        if measure.tick < 0 or measure.num < 1 or measure.denomi < 1:
+            return Result.MEASURE_OUT_OF_BOUNDS
+
+        self.xml.info.measure_info.append(measure)
+
+        return Result.SUCCESS
+
+    def removeBPM(self, bpmTag: bpmXML):
+        return self.xml.info.bpm_info.remove(bpmTag)        
+
+    def removeMeasure(self, measureTag: measureXML):
+        return self.xml.info.measure_info.remove(measureTag)
 
     def addNote(self, position: noteCoordinates, time: Ticks, playerID: PlayerID, stepType: StepTypes):
         if time < 0:
@@ -178,6 +216,26 @@ class Chart:
 
         return newStep
 
+    def addNoteRaw(self, newNote: stepXML): 
+        if newNote.start_tick < 0 or newNote.end_tick < 0 or newNote.end_tick < newNote.start_tick:
+            return Result.TIME_OUT_OF_BOUNDS
+
+        if newNote.left_pos < noteCoordinates.MIN or newNote.right_pos > noteCoordinates.MAX:
+            return Result.NOTE_OUT_OF_BOUNDS
+
+        if newNote.kind not in StepTypes:
+            return Result.INVALID_STEP
+
+        if newNote.player_id not in PlayerID:
+            return Result.INVALID_PLAYER_ID
+        
+        self.xml.sequence_data.append(newNote)
+
+        return Result.SUCCESS
+
+    def removeNote(self, noteTag: stepXML):
+        return self.xml.sequence_data.remove(noteTag);
+
     def addLongPoint(self, stepToModify: stepXML, duration: Ticks):
         newPoint = pointXML(createEmptyPointXML())
 
@@ -189,6 +247,15 @@ class Chart:
         
         returnVal = stepToModify.long_point.append(newPoint)
         return returnVal
+
+    def removeLongPoint(self, stepToModify: stepXML, pointTag: longPointXML):
+        if stepToModify not in self.steps:
+            return Result.NO_ACTION
+
+        if pointTag not in stepToModify.long_point:
+            return Result.NO_ACTION
+
+        return stepToModify.long_point.remove(pointTag)
 
     def movePoint(self, stepToModify: stepXML, pointToModify: pointXML, position: noteCoordinates):
         if pointToModify not in stepToModify.long_point:
@@ -265,15 +332,11 @@ class Chart:
 
         newEffect.param.id = layerNameValues[layerName][2]
         newEffect.param.lane = lane
-        #newEffect.tick = tick
         newEffect.tick = time
 
         self.xml.extend_data.append(newEffect)
 
         return newEffect
-
-    def getRawXML(self):
-        return self.xml.write()
 
     def save(self, filename: str) -> Result:
         return self.xml.write(filename)

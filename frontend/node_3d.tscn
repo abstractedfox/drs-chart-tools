@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://x15lnctf7pn"]
+
+[ext_resource type="Script" path="res://main.gd" id="1_cyov2"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="script" type="Node3D" parent="."]
+script = ExtResource("1_cyov2")

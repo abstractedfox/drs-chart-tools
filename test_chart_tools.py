@@ -10,7 +10,7 @@ import subprocess
 import shutil
 import hashlib
 
-testchart1md5sum = "700d0b414fbcfdb42c38b656b9672d6f"
+testchart1md5sum = "b658ba41ebd45383617d91d59e83ed6b"
 
 def testXMLInterface():
     fumen = xml.etree.ElementTree.parse(sys.argv[1])
@@ -267,7 +267,7 @@ class TestChartXMLInterface(unittest.TestCase):
         badStep.kind = 1
         badStep.player_id = 0
 
-        self.assertEqual(testChart.removeLongPoint(badStep, testChart.steps[4].long_point[0]), Result.NO_ACTION)
+        self.assertEqual(testChart.removeLongPoint(badStep, testChart.steps[4].long_point[0]), Result.NOTE_DOESNT_EXIST)
 
         #can't remove invalid point
         badPoint = pointXML(createEmptyPointXML())
@@ -306,7 +306,7 @@ class TestCharts(unittest.TestCase):
         
         command = chart_tools_api.parse_command("note add 100 100 100 200 1 0")
         self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-       
+        
         command = chart_tools_api.parse_command("note remove 100 100 100 200 1 0")
         self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
       
@@ -315,13 +315,47 @@ class TestCharts(unittest.TestCase):
         
         command = chart_tools_api.parse_command("measure remove 4 4 10")
         self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-
+        
         command = chart_tools_api.parse_command("chart save apisavetest.xml")
         self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         
         command = chart_tools_api.parse_command("chart get")
         chartResponse = chart_tools_api.dispatch_command(command, session)
         self.assertEqual(chartResponse.split('\n')[0], "note 3840 3840 16384 32768 1 0", "First line of api 'chart get' response")
+
+        #sanity check
+        self.assertFalse(session.chart.steps[-1].start_tick == 100)
+
+        #long points
+        command = chart_tools_api.parse_command("note add 100 100 100 200 1 0")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+      
+        #adding a valid hold works (tick at 100, same as the parent note)
+        command = chart_tools_api.parse_command("hold add 100 100 100 200 1 0 200 100 200")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        
+        #make sure it added correctly
+        self.assertEqual(session.chart.steps[-1].start_tick, 100)
+        self.assertEqual(len(session.chart.steps[-1].long_point), 1)
+        self.assertEqual(session.chart.steps[-1].long_point[0].tick, 200)
+
+        #adding an invalid hold (time earlier than last tick in the note) does not work
+        command = chart_tools_api.parse_command("hold add 100 200 100 200 1 0 100 100 200")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.TIME_OUT_OF_BOUNDS, command.unparsed)
+
+        #adding another correct one does work
+        command = chart_tools_api.parse_command("hold add 100 200 100 200 1 0 300 100 200")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+
+        #removing one
+        command = chart_tools_api.parse_command("hold remove 100 300 100 200 1 0 300 100 200")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+       
+        #sanity check
+        self.assertEqual(len(session.chart.steps[-1].long_point), 1)
+
+        command = chart_tools_api.parse_command("note remove 100 300 100 200 1 0")
+        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
 
     def testCommandLine(self):
         commandline = "python3.12 chart_tools_api.py init testyy.xml : bpm add 57300 0"

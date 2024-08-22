@@ -114,8 +114,17 @@ def getLastTimeInStep(step: stepXML) -> Ticks:
     if len(step.long_point) == 0:
         return step.start_tick
 
-    return step.long_point[-1].tick
+    return step.start_tick + step.long_point[-1].tick
     
+
+#Because we need to be able to find tags by their attributes, there is not always a guarantee that the python abstraction of a tag passed in by the API will be a reference to the same tag in the ElementTree structure. so for those occasions where we need a guaranteed reference, use this
+#tl;dr: If the passed 'objectToGet' matches an object in the collection using the equality operator, returns the object as found in the collection
+def getReferenceByValue(parentTag: IXMLCollection, objectToGet):
+    for item in parentTag:
+        if item == objectToGet:
+            return item
+
+    return None
 
 class Chart:
     #Either pass a chart root tag as xml.etree.ElementTree.Element, or pass no arguments and create an empty chart
@@ -234,6 +243,9 @@ class Chart:
         return Result.SUCCESS
 
     def removeNote(self, noteTag: stepXML):
+        noteRef = getReferenceByValue(self.steps, noteTag)
+        if noteRef is None:
+            return Result.NOTE_DOESNT_EXIST
         return self.xml.sequence_data.remove(noteTag);
 
     def addLongPoint(self, stepToModify: stepXML, duration: Ticks):
@@ -246,16 +258,40 @@ class Chart:
         stepToModify.end_tick = newPoint.tick
         
         returnVal = stepToModify.long_point.append(newPoint)
+        
         return returnVal
 
+    def addLongPointRaw(self, stepToModify: stepXML, newPoint: pointXML):
+        stepRef = getReferenceByValue(self.steps, stepToModify)
+        if stepRef is None:
+            return Result.NOTE_DOESNT_EXIST
+
+        if newPoint.left_pos > newPoint.right_pos or len([x for x in [newPoint.left_pos, newPoint.right_pos] if x < noteCoordinates.MIN or x > noteCoordinates.MAX]) != 0:
+            return Result.NOTE_OUT_OF_BOUNDS
+
+        if newPoint.left_end_pos is not None and newPoint.right_end_pos is not None:
+            if len([x for x in [newPoint.left_end_pos, newPoint.right_end_pos] if x < noteCoordinates.MIN or x > noteCoordinates.MAX]) > 0:
+                return Result.NOTE_OUT_OF_BOUNDS
+
+        if newPoint.tick < getLastTimeInStep(stepRef):
+            return Result.TIME_OUT_OF_BOUNDS
+
+        stepRef.long_point.append(newPoint)
+        stepRef.end_tick = newPoint.tick
+
+        return Result.SUCCESS
+
     def removeLongPoint(self, stepToModify: stepXML, pointTag: longPointXML):
-        if stepToModify not in self.steps:
+        stepRef = getReferenceByValue(self.steps, stepToModify)
+        if stepRef is None:
+            return Result.NOTE_DOESNT_EXIST
+
+        if pointTag not in stepRef.long_point:
             return Result.NO_ACTION
 
-        if pointTag not in stepToModify.long_point:
-            return Result.NO_ACTION
+        stepRef.long_point.remove(pointTag)
 
-        return stepToModify.long_point.remove(pointTag)
+        return Result.SUCCESS
 
     def movePoint(self, stepToModify: stepXML, pointToModify: pointXML, position: noteCoordinates):
         if pointToModify not in stepToModify.long_point:
@@ -339,6 +375,11 @@ class Chart:
         return newEffect
 
     def save(self, filename: str) -> Result:
+        self.xml.info.end_tick = 0
+        for step in self.steps:
+            if step.end_tick > self.xml.info.end_tick:
+                self.xml.info.end_tick = step.end_tick
+
         return self.xml.write(filename)
 
 

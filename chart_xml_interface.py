@@ -65,7 +65,6 @@ class IXMLCollection:
         return self[-1]
 
     def remove(self, removeObject: collectionType):
-        #self.innerElement.remove(removeObject.innerElement)
         for item in self:
             if removeObject == item:
                 self.innerElement.remove(item.innerElement)
@@ -216,7 +215,7 @@ class stepXML:
         self.innerElement = stepTag
 
     def __eq__(self, compareTo):
-        return self.start_tick == compareTo.start_tick and self.end_tick == compareTo.end_tick and self.left_pos == compareTo.left_pos and self.right_pos == compareTo.right_pos and self.kind == compareTo.kind and self.player_id == compareTo.player_id and self.long_point == compareTo.long_point
+        return self.start_tick == compareTo.start_tick and self.end_tick == compareTo.end_tick and self.left_pos == compareTo.left_pos and self.right_pos == compareTo.right_pos and self.kind == compareTo.kind and self.player_id == compareTo.player_id #and self.long_point == compareTo.long_point
 
     @property
     def start_tick(self):

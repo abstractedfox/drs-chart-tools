@@ -182,6 +182,7 @@ if __name__ == "__main__":
     for arg in sys.argv[3:]:
         if arg == ":":
             if command != "":
+                print(command)
                 result = dispatch_command(parse_command(command), session)
                 if type(result) == str:
                     print(result)
@@ -194,11 +195,10 @@ if __name__ == "__main__":
 
         command += arg + " "
 
+    print(command)
     dispatch_command(parse_command(command), session)
 
-    if type(result) == str:
-        print(result)
-    elif result != Result.SUCCESS:
+    if result != Result.SUCCESS:
         print(result)
 
     session.chart.save(sys.argv[2])

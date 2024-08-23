@@ -6,3 +6,4 @@
 
 [node name="script" type="Node3D" parent="."]
 script = ExtResource("1_cyov2")
+steps = [null]

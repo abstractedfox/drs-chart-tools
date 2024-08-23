@@ -168,7 +168,8 @@ def parse_command(command: str):
 
 if __name__ == "__main__":
     session = Session()
-  
+    errorState = False 
+
     if sys.argv[1] != "init":
         result = chart(parse_command("chart load {}".format(sys.argv[1])), session)
     else:
@@ -182,12 +183,13 @@ if __name__ == "__main__":
     for arg in sys.argv[3:]:
         if arg == ":":
             if command != "":
-                print(command)
                 result = dispatch_command(parse_command(command), session)
                 if type(result) == str:
                     print(result)
                 elif result != Result.SUCCESS:
                     print(result)
+                    sys.stderr.write("Command <" + command + "> returned " + str(result))
+                    errorState = True
                     break
 
             command = ""
@@ -195,10 +197,16 @@ if __name__ == "__main__":
 
         command += arg + " "
 
-    print(command)
-    dispatch_command(parse_command(command), session)
+    result = dispatch_command(parse_command(command), session)
 
-    if result != Result.SUCCESS:
+    if type(result) == str:
         print(result)
+    elif result != Result.SUCCESS:
+        print(result)
+        sys.stderr.write("Command <" + command + "> returned " + str(result))
+        errorState = True
 
-    session.chart.save(sys.argv[2])
+    if not errorState:
+        session.chart.save(sys.argv[2])
+    else:
+        sys.stderr.write("Chart not saved")

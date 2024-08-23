@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://c76ay2x0ypr7p"]
+
+[ext_resource type="Script" path="res://note.gd" id="1_bemrh"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_jth6g"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_g74ew"]
+
+[node name="Note" type="Node3D"]
+script = ExtResource("1_bemrh")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_jth6g")
+
+[node name="RigidBody3D" type="RigidBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
+shape = SubResource("BoxShape3D_g74ew")

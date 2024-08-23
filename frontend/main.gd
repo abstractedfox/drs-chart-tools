@@ -1,5 +1,20 @@
 extends Node3D
+	
+@export
+var steps = []
 
+func stepToDict(step: String):
+	var sliced = step.split(" ")
+	if sliced[0] != "step":
+		return false
+		
+	return {"start_tick": sliced[1],
+		"end_tick": sliced[2],
+		"left_pos": sliced[3],
+		"right_pos": sliced[4],
+		"kind": sliced[5],
+		"player_id": sliced[6]
+	}
 
 func apiTest():
 	var command = "python3.12 chart_tools_api.py init testyy.xml : bpm add 57300 0"

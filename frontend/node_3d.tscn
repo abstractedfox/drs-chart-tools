@@ -19,5 +19,5 @@ steps = [null]
 transform = Transform3D(1, 0, 0, 0, 0.936207, 0.35145, 0, -0.35145, 0.936207, 0, 1.37909, 3.27097)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.61433, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.13393, 0, -1.61331)
 mesh = SubResource("CylinderMesh_ex8p1")

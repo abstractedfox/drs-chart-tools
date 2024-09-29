@@ -1,8 +1,11 @@
-[gd_scene load_steps=4 format=3 uid="uid://c76ay2x0ypr7p"]
+[gd_scene load_steps=5 format=3 uid="uid://c76ay2x0ypr7p"]
 
 [ext_resource type="Script" path="res://note.gd" id="1_bemrh"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_jth6g"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vpr7w"]
+albedo_color = Color(0, 1, 1, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_g74ew"]
 
@@ -10,7 +13,9 @@
 script = ExtResource("1_bemrh")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+custom_aabb = AABB(2.08165e-12, 2.08165e-12, 2.08165e-12, 15, 1, 1)
 mesh = SubResource("BoxMesh_jth6g")
+surface_material_override/0 = SubResource("StandardMaterial3D_vpr7w")
 
 [node name="RigidBody3D" type="RigidBody3D" parent="."]
 

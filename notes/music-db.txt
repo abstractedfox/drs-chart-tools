@@ -11,12 +11,12 @@ thing of interest: 00246_2b..xml has an extra dot, did we do something silly or 
         <info>
             <title_name>
                 -song name
-            <title_yominaga>
+            <title_yomigana>
                 -song name in skinny katakana if japanese
                 -song name in all lowercase with no spaces if english
             <artist_name>
                 -that
-            <artist_yominaga>
+            <artist_yomigana>
                 -seems to also be skinny katakana for japanese
                 -all lowercase no-spaces shortening if english (ie for song 200, BEMANI Sound Team "DJ TOTTO" becomes djtotto)
             <bpm_max>

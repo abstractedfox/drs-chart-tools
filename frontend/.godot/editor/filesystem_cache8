@@ -1,0 +1,7 @@
+ea4bc82a6ad023ab7ee23ee620429895
+::res://::1727582209
+icon.svg::CompressedTexture2D::1618507685954037170::1724350113::1724350130::1::::<><>::
+main.gd::GDScript::-1::1724810546::0::1::::<>Node3D<>::
+node_3d.tscn::PackedScene::49113501928254051::1726810577::0::1::::<><>::res://main.gd<>uid://c76ay2x0ypr7p::::res://note.tscn
+note.gd::GDScript::-1::1726810628::0::1::::<>Node3D<>::
+note.tscn::PackedScene::7082924388062332395::1726810628::0::1::::<><>::res://note.gd

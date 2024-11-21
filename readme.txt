@@ -10,6 +10,8 @@ chart_xml_interface.py: The part that actually touches the XML, really just an i
 
 database_tools.py: Analog to chart_xml_interface.py, plus some useful functions for database modiciation (some of these should be split off into a new file when we make one more purpose built beyond just handling xml)
 
+./notes/: Observations from studying the formats, no guarantee that these will be readable to anyone but me
+
 More detailed usage below
 
 chart_tools_api.py

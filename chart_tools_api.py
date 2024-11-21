@@ -25,7 +25,7 @@ class Session:
         self.chart = None
 
 
-def parseStepFromCommand(command: command_struct) -> stepXML:
+def parse_step_from_command(command: command_struct) -> stepXML:
     thisNote = stepXML(createEmptyStepXML())
     thisNote.start_tick = command.args[0]
     thisNote.end_tick = command.args[1]
@@ -65,7 +65,7 @@ def chart(command: command_struct, session: Session):
 
 
 def note(command: command_struct, session: Session):
-    thisNote = parseStepFromCommand(command)
+    thisNote = parse_step_from_command(command)
 
     if command.command == command_struct.commands["add"]:
         return session.chart.addNoteRaw(thisNote) 
@@ -117,7 +117,7 @@ def measure(command: command_struct, session: Session):
 
 
 def hold(command: command_struct, session: Session):
-    parentStep = parseStepFromCommand(command)
+    parentStep = parse_step_from_command(command)
     thisHold = pointXML(createEmptyPointXML())
     thisHold.tick = command.args[6]
     thisHold.left_pos = command.args[7]

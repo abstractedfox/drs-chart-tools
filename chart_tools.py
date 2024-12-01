@@ -127,8 +127,8 @@ def getReferenceByValue(parentTag: IXMLCollection, objectToGet):
     return None
 
 class Chart:
-    #Either pass a chart root tag as xml.etree.ElementTree.Element, or pass no arguments and create an empty chart
-    def __init__(self, xml = None, timeUnit = Ticks(480), endTick = Ticks(0)):
+    #Either pass a chart root tag as xml.etree.ElementTree.Element, or pass nothing and create an empty chart
+    def __init__(self, xml:xml.etree.ElementTree.Element = None, timeUnit = Ticks(480), endTick = Ticks(0)):
         if xml is not None:
             self.xml = chartRootXML(xml)
         else:

@@ -9,9 +9,9 @@
 
 [node name="script" type="Node3D" parent="."]
 script = ExtResource("1_cyov2")
-steps = [null]
 
 [node name="Note" parent="." instance=ExtResource("2_0nhp0")]
+visible = false
 
 [node name="Marker3D" type="Marker3D" parent="."]
 
@@ -20,4 +20,5 @@ transform = Transform3D(1, 0, 0, 0, 0.936207, 0.35145, 0, -0.35145, 0.936207, 0,
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.13393, 0, -1.61331)
+visible = false
 mesh = SubResource("CylinderMesh_ex8p1")

@@ -24,8 +24,7 @@ var mesh
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	
-	$MeshInstance3D.scale.x = float(attributes.right_pos - attributes.left_pos) * Globals.laneAtom
+	#$MeshInstance3D.scale.x = float(attributes.right_pos - attributes.left_pos) * Globals.laneAtom
 	
 	return
 	
@@ -118,4 +117,5 @@ func _ready():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	pass
+	$MeshInstance3D.scale.x = float(attributes.right_pos - attributes.left_pos) * Globals.laneAtom
+	

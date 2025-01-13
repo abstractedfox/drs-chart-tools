@@ -1,0 +1,34 @@
+<html>
+<head>
+
+    <script>
+        //document.getElementById("audio_upload").addEventListener("change", upload);
+        function test(){
+            console.log(document.getElementById("file_in").files[0]);
+        }
+        
+        function step(dt){
+            
+            
+            requestAnimationFrame(step);
+        }
+    </script>
+</head>
+<body>
+    <!-- leaving off because its 2am: find out why the top one works and the bottom one doesnt-->
+    <input type="file" id="file_in"/>
+    <input type="button" onclick="test()">
+    <hr>
+    <form id="upload">
+        <input type="file" value="Select Audio" />
+        <input type="button" value="Upload" id="audio_upload" onclick="test()" />
+    </form>
+    <canvas id="viewport" width="640" height = "480"></canvas>
+    
+    <script src="{{ url_for('static', filename = 'script.js') }}"></script>
+    <script>
+        let canvas = document.getElementById("viewport");
+        let context = canvas.getContext("2d");
+    </script> 
+</body>
+</html>

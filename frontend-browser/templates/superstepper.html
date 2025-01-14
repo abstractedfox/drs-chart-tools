@@ -2,28 +2,36 @@
 <head>
 
     <script>
-        //document.getElementById("audio_upload").addEventListener("change", upload);
-        function test(){
-            console.log(document.getElementById("file_in").files[0]);
-        }
+        var debug = true;
+
+        var viewport_x = window.innerWidth; 
+        var viewport_y = window.innerHeight; 
         
+        var lanewidth = 600;
+
+        addEventListener("resize", (event) => { 
+            viewport_x = window.innerWidth; 
+            viewport_y = window.innerHeight; 
+            if (debug) console.log("viewport is " + viewport_x + " " + viewport_y)
+        });
+
+        function drawLane(elementId){
+            let canvas = document.getElementById(elementId);
+            var context = canvas.getContext("2d");
+            //finish this!
+        }
+
         function step(dt){
-            
             
             requestAnimationFrame(step);
         }
     </script>
 </head>
 <body>
-    <!-- leaving off because its 2am: find out why the top one works and the bottom one doesnt-->
-    <input type="file" id="file_in"/>
-    <input type="button" onclick="test()">
-    <hr>
     <form id="upload">
-        <input type="file" value="Select Audio" />
-        <input type="button" value="Upload" id="audio_upload" onclick="test()" />
+        <input type="file" value="Select Audio" id="audio_upload" />
     </form>
-    <canvas id="viewport" width="640" height = "480"></canvas>
+    <canvas id="lane" width="640" height = "480"></canvas>
     
     <script src="{{ url_for('static', filename = 'script.js') }}"></script>
     <script>

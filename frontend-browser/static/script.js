@@ -1,10 +1,10 @@
 let audio;
 
-document.getElementById("audio_upload").addEventListener("change", upload);
+document.getElementById("audio_upload").addEventListener("change", upload_audio);
 
-function upload(){
+function upload_audio(){
     console.log(document.getElementById("audio_upload"))
     audio = document.getElementById("audio_upload").files[0];
-    console.log("received");
-    console.log(audio);
 }
+
+

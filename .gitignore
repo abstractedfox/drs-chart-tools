@@ -5,3 +5,4 @@ __pycache__
 *.kate-swp
 *.swo
 .godot
+*.egg-info

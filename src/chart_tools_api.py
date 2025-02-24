@@ -40,6 +40,7 @@ def parse_step_from_command(command: command_struct) -> stepXML:
 def chart(command: command_struct, session: Session): 
     if command.command == command_struct.commands["load"]:
         try:
+            print(command.args)
             session.chart = Chart(xml.etree.ElementTree.parse(command.args[0]).getroot())
         except:
             return Result.CHART_PARSING_ERROR

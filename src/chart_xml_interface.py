@@ -197,6 +197,8 @@ class pointXML:
         return int(result.text)
     @left_end_pos.setter
     def left_end_pos(self, value):
+        if self.innerElement.find("left_end_pos") is None:
+            appendEndPosXML(self.innerElement)
         self.innerElement.find("left_end_pos").text = str(value)
 
     #This tag does not always exist, so this can return None under normal conditions
@@ -208,6 +210,8 @@ class pointXML:
         return int(result.text)
     @right_end_pos.setter
     def right_end_pos(self, value):
+        if self.innerElement.find("right_end_pos") is None:
+            appendEndPosXML(self.innerElement)
         self.innerElement.find("right_end_pos").text = str(value)
 
 

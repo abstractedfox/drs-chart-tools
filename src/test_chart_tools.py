@@ -10,6 +10,9 @@ import subprocess
 import shutil
 import hashlib
 
+#post refactor imports
+from chart_tools_new import *
+
 testchart1md5sum = "b658ba41ebd45383617d91d59e83ed6b"
 
 def testXMLInterface():
@@ -359,6 +362,42 @@ class TestCharts(unittest.TestCase):
 
     def testCommandLine(self):
         commandline = "python3.12 chart_tools_api.py init testyy.xml : bpm add 57300 0"
+
+class TestChartToolsNew(unittest.TestCase):
+    def test_dict_factory(self):
+        bpmdict = new_bpm_info_dict(bpm = 100)
+        self.assertIsNotNone(bpmdict)
+        [self.assertTrue(x in ["exists", "type", "tick", "bpm"]) for x in bpmdict]
+        self.assertEqual(len(bpmdict), 4)
+        self.assertEqual(bpmdict["bpm"], 100)
+
+    def test_object_from_dict(self):
+        bpmdict = new_bpm_info_dict(bpm = 100)
+        result = object_from_dict(bpmdict)
+        self.assertEqual(type(result), bpmXML)
+        self.assertEqual(result.bpm, 100)
+    
+        measuredict = new_measure_info_dict(num = 4, denomi = 8)
+        result = object_from_dict(measuredict)
+        self.assertEqual(result.num, 4)
+        self.assertEqual(result.denomi, 8)
+
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        result = object_from_dict(stepdict)
+        self.assertEqual(result.start_tick, 10)
+        self.assertEqual(result.end_tick, 20)
+        self.assertEqual(result.left_pos, 30)
+        self.assertEqual(result.right_pos, 40)
+        self.assertEqual(result.kind, 1)
+        self.assertEqual(result.player_id, 1)
+
+        pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        result = object_from_dict(pointdict)
+        self.assertEqual(result.tick, 10)
+        self.assertEqual(result.left_pos, 20)
+        self.assertEqual(result.right_pos, 30)
+        self.assertEqual(result.left_end_pos, 40)
+        self.assertEqual(result.right_end_pos, 50)
 
 if __name__ == "__main__":
     generateCompleteChart()

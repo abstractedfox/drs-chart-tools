@@ -1,12 +1,10 @@
-from dataclasses import dataclass
-
 from chart_xml_interface import *
 from common import *
 
 
 def add_dict_commons(dictionary):
-    dictionary["exists"] = 1 #by default, the tag exists
-    
+    dictionary["exists"] = 1 #by default, the tag exists (using int for interop w js)
+
 
 #Dict structures to be used by the API, use these to ensure correctness
 def new_bpm_info_dict(tick = 0, bpm = 0):
@@ -29,7 +27,8 @@ def new_point_dict(tick = 0, left_pos = 0, right_pos = 0, left_end_pos = 0, righ
     add_dict_commons(result)
     return result
 
-#Prevent modifying a key in a dictionary if it doesn't already exist
+
+#Prevent accidentally adding a key to a dict 
 class verifydict:
     def __init__(self, dictionary):
         self.dictionary = dictionary
@@ -40,7 +39,8 @@ class verifydict:
         
         self.dictionary["key"] = value
 
-#For a given chart element represented as a dict, receive it as an appropriate wrapper type from chart_xml_interface
+
+#For a given chart element represented as a dict, receive it as an appropriate wrapper class instance from chart_xml_interface
 def object_from_dict(dictionary):
     result = None
     match dictionary["type"]:
@@ -60,3 +60,18 @@ def object_from_dict(dictionary):
         setattr(result, key, dictionary[key])
 
     return result
+
+
+#Where 'element' is a bpm, measure, step, or point.
+#Element is added to the chart by default or removed from the chart (if it exists) if remove == True
+#This is currently untested!
+def update_chart(chart: chartXML, element, remove = False) -> Result:
+    if type(element) == stepXML:
+        if remove:
+            return chart.sequence_data.remove(element)
+        
+        exists = chart.sequence_data.getElement(element)
+
+        if exists is not None:
+            return Result.NOTE_ALREADY_EXISTS
+        chart.sequence_data.append(element)

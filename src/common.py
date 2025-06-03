@@ -23,3 +23,4 @@ class Result(Enum):
     TYPE_ERROR=19
     INVALID_PLAYER_ID = 20
     INVALID_STEP = 21
+    NOTE_ALREADY_EXISTS = 22

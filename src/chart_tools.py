@@ -11,7 +11,7 @@ SEQ_VER = 9
 Ticks = int
 Beats = Decimal
 
-
+#for scripting charts in python
 beatSegments = {
         1: Beats(1),
         2: Beats(1) / Beats(2),

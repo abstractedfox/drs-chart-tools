@@ -35,7 +35,7 @@ class verifydict:
 
     def __setitem__(self, key, value):
         if key not in self.dictionary:
-            raise KeyError
+            raise KeyError(key)
         
         self.dictionary["key"] = value
 
@@ -57,8 +57,11 @@ def object_from_dict(dictionary):
             result = pointXML(createEmptyPointXML())
 
     for key in dictionary:
-        setattr(result, key, dictionary[key])
-
+        if key in dir(result):
+            setattr(result, key, dictionary[key])
+        elif key != "type" and key != "exists":
+            raise KeyError(key)
+    
     return result
 
 

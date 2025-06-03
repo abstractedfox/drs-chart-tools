@@ -50,7 +50,6 @@ def makeDummyChart():
 
     return testChart
 
-
 #Generate a chart testing every element that we can create
 def makeCompleteChart():
     testChart = Chart(endTick = beatsToTicks(120, 480))
@@ -398,6 +397,148 @@ class TestChartToolsNew(unittest.TestCase):
         self.assertEqual(result.right_pos, 30)
         self.assertEqual(result.left_end_pos, 40)
         self.assertEqual(result.right_end_pos, 50)
+
+        #test a step which contains points
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        pointdict2 = new_point_dict(tick = 100, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        stepdict["long_point"].append(pointdict)
+        stepdict["long_point"].append(pointdict2)
+        result = object_from_dict(stepdict)
+        self.assertEqual(len(result.long_point), 2)
+        self.assertEqual(type(result.long_point[0]), pointXML)
+    
+    def test_dict_from_object(self):
+        bpmdict = new_bpm_info_dict(bpm = 100, tick = 200)
+        classinstance = object_from_dict(bpmdict)
+        dictagain = dict_from_object(classinstance)
+        self.assertEqual(bpmdict, dictagain)
+        
+        measuredict = new_measure_info_dict(num = 4, denomi = 8)
+        classinstance = object_from_dict(measuredict)
+        dictagain = dict_from_object(classinstance)
+        self.assertEqual(measuredict, dictagain)
+        
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        classinstance = object_from_dict(stepdict)
+        dictagain = dict_from_object(classinstance)
+        self.assertEqual(stepdict, dictagain)
+
+        pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        classinstance = object_from_dict(pointdict)
+        dictagain = dict_from_object(classinstance)
+        self.assertEqual(pointdict, dictagain)
+
+        #step with points
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        pointdict2 = new_point_dict(tick = 100, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        stepdict["long_point"].append(pointdict)
+        stepdict["long_point"].append(pointdict2)
+        classinstance = object_from_dict(stepdict)
+        dictagain = dict_from_object(classinstance)
+        self.assertEqual(stepdict, dictagain)
+
+
+    def test_update_chart_step(self):
+        #Can add a step
+        chart = new_chart()
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        step = object_from_dict(stepdict)
+        self.assertEqual(update_chart(chart, step), Result.SUCCESS)
+        self.assertEqual(len(chart.sequence_data), 1)
+
+        #Can't add a step that is identical to an existing step 
+        self.assertEqual(update_chart(chart, step), Result.NOTE_ALREADY_EXISTS)
+
+        #Result.NO_ACTION when removing a step that doesn't exixt
+        stepdict2 = new_step_dict(start_tick = 100, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        step2 = object_from_dict(stepdict2)
+        self.assertEqual(update_chart(chart, step2, remove = True), Result.NO_ACTION)
+        
+        #Can remove a step 
+        self.assertEqual(update_chart(chart, step, remove = True), Result.SUCCESS)
+        self.assertEqual(len(chart.sequence_data), 0)
+
+    #Test updating a chart with a step that contains points
+    def test_update_chart_step_points(self):
+        chart = new_chart()
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        pointdict2 = new_point_dict(tick = 100, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        stepdict["long_point"].append(pointdict)
+        stepdict["long_point"].append(pointdict2)
+        step_object = object_from_dict(stepdict)
+        update_chart(chart, step_object)
+        self.assertEqual(len(chart.sequence_data[0].long_point), 2)
+         
+
+    def test_update_chart_measure(self):
+        chart = new_chart()
+        measuredict = new_measure_info_dict(num = 4, denomi = 8)
+        measure = object_from_dict(measuredict)
+        self.assertEqual(update_chart(chart, measure), Result.SUCCESS)
+        self.assertEqual(len(chart.info.measure_info), 1)
+
+        #Can't add a measure that is identical to an existing measure 
+        self.assertEqual(update_chart(chart, measure), Result.MEASURE_ALREADY_EXISTS)
+
+        #Result.NO_ACTION when removing a measure that doesn't exixt
+        measuredict2 = new_measure_info_dict(num = 5, denomi = 8)
+        measure2 = object_from_dict(measuredict2)
+        self.assertEqual(update_chart(chart, measure2, remove = True), Result.NO_ACTION)
+        
+        #Can remove a measure 
+        self.assertEqual(update_chart(chart, measure, remove = True), Result.SUCCESS)
+        self.assertEqual(len(chart.sequence_data), 0)
+         
+    def test_update_chart_bpm(self):
+        chart = new_chart()
+        bpmdict = new_bpm_info_dict(bpm=100)
+        bpm = object_from_dict(bpmdict)
+        self.assertEqual(update_chart(chart, bpm), Result.SUCCESS)
+        self.assertEqual(len(chart.info.bpm_info), 1)
+
+        #Can't add a bpm that is identical to an existing bpm 
+        self.assertEqual(update_chart(chart, bpm), Result.BPM_ALREADY_EXISTS)
+
+        #Result.NO_ACTION when removing a bpm that doesn't exixt
+        bpmdict2 =  new_bpm_info_dict(bpm=200)
+        bpm2 = object_from_dict(bpmdict2)
+        self.assertEqual(update_chart(chart, bpm2, remove = True), Result.NO_ACTION)
+        
+        #Can remove a bpm 
+        self.assertEqual(update_chart(chart, bpm, remove = True), Result.SUCCESS)
+        self.assertEqual(len(chart.sequence_data), 0)
+
+    def test_update_chart_point(self):
+        chart = new_chart()
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        
+        step1 = object_from_dict(stepdict)
+        point1 = object_from_dict(pointdict)
+
+        self.assertEqual(update_chart(chart, point1), Result.INVALID_LONG_POINT)
+
+        self.assertEqual(update_chart(chart, point1, point_parent_step = step1), Result.NOTE_DOESNT_EXIST)
+       
+        #Can't remove point that isn't on a step
+        update_chart(chart, step1)
+        self.assertEqual(update_chart(chart, point1, point_parent_step = step1, remove = True), Result.NO_ACTION)
+       
+        #Can add a point to a step
+        self.assertEqual(update_chart(chart, point1, point_parent_step = step1), Result.SUCCESS)
+        self.assertEqual(len(chart.sequence_data[0].long_point), 1)
+        
+        #Can't add an identical point
+        self.assertEqual(update_chart(chart, point1, point_parent_step = step1), Result.POINT_ALREADY_EXISTS)
+        self.assertEqual(len(chart.sequence_data[0].long_point), 1)
+    
+        #Can remove a point 
+        self.assertEqual(update_chart(chart, point1, point_parent_step = step1, remove = True), Result.SUCCESS)
+        self.assertEqual(len(chart.sequence_data[0].long_point), 0)
+
 
 if __name__ == "__main__":
     generateCompleteChart()

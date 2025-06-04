@@ -2,7 +2,7 @@ Quick refactor docs so I can keep track of what's going on here
 
 At present, we have:
 - chart_xml_interface.py
-    - An interface to the xml files. Avoids having ugly ElementTree code everywhere/interfacing with the files more pythonically
+    - An interface to the xml files. Avoids having ugly ElementTree code everywhere/allows interfacing with the files more pythonically
     - Usage pattern is that the wrapper classes interface with an *existing* xml tag. There are separate factory functions to create new instances of xml tags
 - chart_tools_new.py
     - Use update_chart function to add or remove things from a chart instance (as chartRootXML) in a declarative fashion. Will not add duplicate elements and gracefully handles attempts to remove elements that don't exist

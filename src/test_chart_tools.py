@@ -1,7 +1,7 @@
-from chart_tools import *
+from _chart_tools_deprecated import *
 from common import *
-#from chart_tools_api import *
-import chart_tools_api
+#from _chart_tools_api_deprecated import *
+import _chart_tools_api_deprecated
 
 import xml.etree.ElementTree
 import sys
@@ -9,6 +9,10 @@ import unittest
 import subprocess
 import shutil
 import hashlib
+import requests
+
+#post refactor imports
+from chart_tools_new import *
 
 testchart1md5sum = "b658ba41ebd45383617d91d59e83ed6b"
 
@@ -46,7 +50,6 @@ def makeDummyChart():
         testChart.addNote(getPosition(noteSize, (65536 / 4) + ((i % 2) * (65536 / 4))), beatsToTicks(i, testChart.timeUnit), PlayerID.PLAYER1, StepTypes.LEFT)
 
     return testChart
-
 
 #Generate a chart testing every element that we can create
 def makeCompleteChart():
@@ -292,47 +295,47 @@ class TestCharts(unittest.TestCase):
 
 
     def testAPI(self):
-        session = chart_tools_api.Session()
+        session = _chart_tools_api_deprecated.Session()
 
-        command = chart_tools_api.parse_command("chart load testchart1.xml")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("chart load testchart1.xml")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         self.assertIsNotNone(session.chart)
 
-        command = chart_tools_api.parse_command("bpm add 57300 0")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("bpm add 57300 0")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
 
-        command = chart_tools_api.parse_command("bpm remove 57300 0")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("bpm remove 57300 0")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         
-        command = chart_tools_api.parse_command("note add 100 100 100 200 1 0")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("note add 100 100 100 200 1 0")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         
-        command = chart_tools_api.parse_command("note remove 100 100 100 200 1 0")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("note remove 100 100 100 200 1 0")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
       
-        command = chart_tools_api.parse_command("measure add 4 4 10")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("measure add 4 4 10")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         
-        command = chart_tools_api.parse_command("measure remove 4 4 10")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("measure remove 4 4 10")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         
-        command = chart_tools_api.parse_command("chart save apisavetest.xml")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("chart save apisavetest.xml")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         
-        command = chart_tools_api.parse_command("chart get")
-        chartResponse = chart_tools_api.dispatch_command(command, session)
+        command = _chart_tools_api_deprecated.parse_command("chart get")
+        chartResponse = _chart_tools_api_deprecated.dispatch_command(command, session)
         self.assertEqual(chartResponse.split('\n')[0], "note 3840 3840 16384 32768 1 0", "First line of api 'chart get' response")
 
         #sanity check
         self.assertFalse(session.chart.steps[-1].start_tick == 100)
 
         #long points
-        command = chart_tools_api.parse_command("note add 100 100 100 200 1 0")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("note add 100 100 100 200 1 0")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
       
         #adding a valid hold works (tick at 100, same as the parent note)
-        command = chart_tools_api.parse_command("hold add 100 100 100 200 1 0 200 100 200")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("hold add 100 100 100 200 1 0 200 100 200")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         
         #make sure it added correctly
         self.assertEqual(session.chart.steps[-1].start_tick, 100)
@@ -340,25 +343,214 @@ class TestCharts(unittest.TestCase):
         self.assertEqual(session.chart.steps[-1].long_point[0].tick, 200)
 
         #adding an invalid hold (time earlier than last tick in the note) does not work
-        command = chart_tools_api.parse_command("hold add 100 200 100 200 1 0 100 100 200")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.TIME_OUT_OF_BOUNDS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("hold add 100 200 100 200 1 0 100 100 200")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.TIME_OUT_OF_BOUNDS, command.unparsed)
 
         #adding another correct one does work
-        command = chart_tools_api.parse_command("hold add 100 200 100 200 1 0 300 100 200")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("hold add 100 200 100 200 1 0 300 100 200")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
 
         #removing one
-        command = chart_tools_api.parse_command("hold remove 100 300 100 200 1 0 300 100 200")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("hold remove 100 300 100 200 1 0 300 100 200")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
        
         #sanity check
         self.assertEqual(len(session.chart.steps[-1].long_point), 1)
 
-        command = chart_tools_api.parse_command("note remove 100 300 100 200 1 0")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("note remove 100 300 100 200 1 0")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
 
     def testCommandLine(self):
-        commandline = "python3.12 chart_tools_api.py init testyy.xml : bpm add 57300 0"
+        commandline = "python3.12 _chart_tools_api_deprecated.py init testyy.xml : bpm add 57300 0"
+
+class TestChartToolsNew(unittest.TestCase):
+    def test_dict_factory(self):
+        bpmdict = new_bpm_info_dict(bpm = 100)
+        self.assertIsNotNone(bpmdict)
+        [self.assertTrue(x in ["exists", "type", "tick", "bpm"]) for x in bpmdict]
+        self.assertEqual(len(bpmdict), 4)
+        self.assertEqual(bpmdict["bpm"], 100)
+
+    def test_object_from_dict(self):
+        bpmdict = new_bpm_info_dict(bpm = 100)
+        result = object_from_dict(bpmdict)
+        self.assertEqual(type(result), bpmXML)
+        self.assertEqual(result.bpm, 100)
+    
+        measuredict = new_measure_info_dict(num = 4, denomi = 8)
+        result = object_from_dict(measuredict)
+        self.assertEqual(result.num, 4)
+        self.assertEqual(result.denomi, 8)
+
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        result = object_from_dict(stepdict)
+        self.assertEqual(result.start_tick, 10)
+        self.assertEqual(result.end_tick, 20)
+        self.assertEqual(result.left_pos, 30)
+        self.assertEqual(result.right_pos, 40)
+        self.assertEqual(result.kind, 1)
+        self.assertEqual(result.player_id, 1)
+
+        pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        result = object_from_dict(pointdict)
+        self.assertEqual(result.tick, 10)
+        self.assertEqual(result.left_pos, 20)
+        self.assertEqual(result.right_pos, 30)
+        self.assertEqual(result.left_end_pos, 40)
+        self.assertEqual(result.right_end_pos, 50)
+
+        #test a step which contains points
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        pointdict2 = new_point_dict(tick = 100, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        stepdict["long_point"].append(pointdict)
+        stepdict["long_point"].append(pointdict2)
+        result = object_from_dict(stepdict)
+        self.assertEqual(len(result.long_point), 2)
+        self.assertEqual(type(result.long_point[0]), pointXML)
+    
+    def test_dict_from_object(self):
+        bpmdict = new_bpm_info_dict(bpm = 100, tick = 200)
+        classinstance = object_from_dict(bpmdict)
+        dictagain = dict_from_object(classinstance)
+        self.assertEqual(bpmdict, dictagain)
+        
+        measuredict = new_measure_info_dict(num = 4, denomi = 8)
+        classinstance = object_from_dict(measuredict)
+        dictagain = dict_from_object(classinstance)
+        self.assertEqual(measuredict, dictagain)
+        
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        classinstance = object_from_dict(stepdict)
+        dictagain = dict_from_object(classinstance)
+        self.assertEqual(stepdict, dictagain)
+
+        pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        classinstance = object_from_dict(pointdict)
+        dictagain = dict_from_object(classinstance)
+        self.assertEqual(pointdict, dictagain)
+
+        #step with points
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        pointdict2 = new_point_dict(tick = 100, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        stepdict["long_point"].append(pointdict)
+        stepdict["long_point"].append(pointdict2)
+        classinstance = object_from_dict(stepdict)
+        dictagain = dict_from_object(classinstance)
+        self.assertEqual(stepdict, dictagain)
+
+
+    def test_update_chart_step(self):
+        #Can add a step
+        chart = new_chart()
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        step = object_from_dict(stepdict)
+        self.assertEqual(update_chart(chart, step), Result.SUCCESS)
+        self.assertEqual(len(chart.sequence_data), 1)
+
+        #Can't add a step that is identical to an existing step 
+        self.assertEqual(update_chart(chart, step), Result.NOTE_ALREADY_EXISTS)
+
+        #Result.NO_ACTION when removing a step that doesn't exixt
+        stepdict2 = new_step_dict(start_tick = 100, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        step2 = object_from_dict(stepdict2)
+        self.assertEqual(update_chart(chart, step2, remove = True), Result.NO_ACTION)
+        
+        #Can remove a step 
+        self.assertEqual(update_chart(chart, step, remove = True), Result.SUCCESS)
+        self.assertEqual(len(chart.sequence_data), 0)
+
+    #Test updating a chart with a step that contains points
+    def test_update_chart_step_points(self):
+        chart = new_chart()
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        pointdict2 = new_point_dict(tick = 100, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        stepdict["long_point"].append(pointdict)
+        stepdict["long_point"].append(pointdict2)
+        step_object = object_from_dict(stepdict)
+        update_chart(chart, step_object)
+        self.assertEqual(len(chart.sequence_data[0].long_point), 2)
+         
+
+    def test_update_chart_measure(self):
+        chart = new_chart()
+        measuredict = new_measure_info_dict(num = 4, denomi = 8)
+        measure = object_from_dict(measuredict)
+        self.assertEqual(update_chart(chart, measure), Result.SUCCESS)
+        self.assertEqual(len(chart.info.measure_info), 1)
+
+        #Can't add a measure that is identical to an existing measure 
+        self.assertEqual(update_chart(chart, measure), Result.MEASURE_ALREADY_EXISTS)
+
+        #Result.NO_ACTION when removing a measure that doesn't exixt
+        measuredict2 = new_measure_info_dict(num = 5, denomi = 8)
+        measure2 = object_from_dict(measuredict2)
+        self.assertEqual(update_chart(chart, measure2, remove = True), Result.NO_ACTION)
+        
+        #Can remove a measure 
+        self.assertEqual(update_chart(chart, measure, remove = True), Result.SUCCESS)
+        self.assertEqual(len(chart.sequence_data), 0)
+         
+    def test_update_chart_bpm(self):
+        chart = new_chart()
+        bpmdict = new_bpm_info_dict(bpm=100)
+        bpm = object_from_dict(bpmdict)
+        self.assertEqual(update_chart(chart, bpm), Result.SUCCESS)
+        self.assertEqual(len(chart.info.bpm_info), 1)
+
+        #Can't add a bpm that is identical to an existing bpm 
+        self.assertEqual(update_chart(chart, bpm), Result.BPM_ALREADY_EXISTS)
+
+        #Result.NO_ACTION when removing a bpm that doesn't exixt
+        bpmdict2 =  new_bpm_info_dict(bpm=200)
+        bpm2 = object_from_dict(bpmdict2)
+        self.assertEqual(update_chart(chart, bpm2, remove = True), Result.NO_ACTION)
+        
+        #Can remove a bpm 
+        self.assertEqual(update_chart(chart, bpm, remove = True), Result.SUCCESS)
+        self.assertEqual(len(chart.sequence_data), 0)
+
+    def test_update_chart_point(self):
+        chart = new_chart()
+        stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+        pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+        
+        step1 = object_from_dict(stepdict)
+        point1 = object_from_dict(pointdict)
+
+        self.assertEqual(update_chart(chart, point1), Result.INVALID_LONG_POINT)
+
+        self.assertEqual(update_chart(chart, point1, point_parent_step = step1), Result.NOTE_DOESNT_EXIST)
+       
+        #Can't remove point that isn't on a step
+        update_chart(chart, step1)
+        self.assertEqual(update_chart(chart, point1, point_parent_step = step1, remove = True), Result.NO_ACTION)
+       
+        #Can add a point to a step
+        self.assertEqual(update_chart(chart, point1, point_parent_step = step1), Result.SUCCESS)
+        self.assertEqual(len(chart.sequence_data[0].long_point), 1)
+        
+        #Can't add an identical point
+        self.assertEqual(update_chart(chart, point1, point_parent_step = step1), Result.POINT_ALREADY_EXISTS)
+        self.assertEqual(len(chart.sequence_data[0].long_point), 1)
+    
+        #Can remove a point 
+        self.assertEqual(update_chart(chart, point1, point_parent_step = step1, remove = True), Result.SUCCESS)
+        self.assertEqual(len(chart.sequence_data[0].long_point), 0)
+
+class TestAPINew(unittest.TestCase):
+    def test_send_request(self):
+        from app import app
+        app.testing = True
+
+        with app.test_client() as client:
+            result = client.post("/api", json={"hi": ["this is a list", "hii"]})
+            self.assertEqual(result.json["head"]["result"], "BAD_REQUEST")
+
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newchart.xml"}})
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
 
 if __name__ == "__main__":
     generateCompleteChart()

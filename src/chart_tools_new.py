@@ -1,0 +1,175 @@
+from chart_xml_interface import *
+from common import *
+
+
+def add_dict_commons(dictionary):
+    dictionary["exists"] = 1 #by default, the tag exists (using int for interop w js)
+
+
+#Dict structures to be used by the API, use these to ensure correctness
+def new_bpm_info_dict(tick = 0, bpm = 0):
+    result = {"type": "bpm_info", "tick": tick, "bpm": bpm}
+    add_dict_commons(result)
+    return result
+
+def new_measure_info_dict(tick = 0, num = 0, denomi = 0):
+    result = {"type": "measure_info", "tick": tick, "num": num, "denomi": denomi}
+    add_dict_commons(result)
+    return result
+
+def new_step_dict(start_tick = 0, end_tick = 0, left_pos = 0, right_pos = 0, kind = 1, player_id = 0):
+    result = {"type": "step", "start_tick": start_tick, "end_tick": end_tick, "left_pos": left_pos, "right_pos": right_pos, "kind": kind, "player_id": player_id}
+    
+    result = {"type": "step", "start_tick": start_tick, "end_tick": end_tick, "left_pos": left_pos, "right_pos": right_pos, "kind": kind, "player_id": player_id, "long_point": []}
+    add_dict_commons(result)
+    return result
+
+def new_point_dict(tick = 0, left_pos = 0, right_pos = 0, left_end_pos = 0, right_end_pos = 0):
+    result = {"type": "point", "tick": tick, "left_pos": left_pos, "right_pos": right_pos, "left_end_pos": left_end_pos, "right_end_pos": right_end_pos}
+    add_dict_commons(result)
+    return result
+
+def new_extend_dict(type_tag = "Vfx", tick = 0, time = 0, kind = "", layer_name = "", id_tag = 0, lane = 0, speed = 0, r = 0, g = 0, b = 0):
+    result = {"type": type_tag, "tick": tick, "time": time, "kind": kind, "layer_name": layer_name, "id": id_tag, "lane": lane, "speed": speed, "r": r, "g": g, "b": b}
+    add_dict_commons(result)
+    return result
+
+#Prevent accidentally adding a key to a dict 
+class verifydict:
+    def __init__(self, dictionary):
+        self.dictionary = dictionary
+
+    def __setitem__(self, key, value):
+        if key not in self.dictionary:
+            raise KeyError(key)
+        
+        self.dictionary[key] = value
+
+
+#For a given chart element represented as a dict, receive it as an appropriate wrapper class instance from chart_xml_interface
+def object_from_dict(dictionary):
+    result = None
+    match dictionary["type"]:
+        case "bpm_info":
+            result = bpmXML(createEmptyBPMXML())
+
+        case "measure_info":
+            result = measureXML(createEmptyMeasureXML())
+        
+        case "step":
+            result = stepXML(createEmptyStepXML())
+
+        case "point":
+            result = pointXML(createEmptyPointXML())
+
+    for key in dictionary:
+        if key == "long_point":
+            if len(dictionary["long_point"]) > 0:
+                for point in dictionary["long_point"]:
+                   result.long_point.append(object_from_dict(point))
+            else:
+                continue
+        elif key in dir(result):
+            setattr(result, key, dictionary[key])
+        elif key != "type" and key != "exists":
+            raise KeyError(key)
+    
+    return result
+
+#For a given chart element represented as a wrapper class instance, receive it as an appropriate dict
+def dict_from_object(classinstance):
+    class dummy:
+        def __init__(self):
+            pass
+
+    result = None
+    if type(classinstance) == bpmXML:
+        result = new_bpm_info_dict()
+
+    if type(classinstance) ==  measureXML:
+        result = new_measure_info_dict()
+
+    if type(classinstance) == stepXML:
+        result = new_step_dict()
+
+    if type(classinstance) == pointXML:
+        result = new_point_dict()
+
+    for key in [x for x in dir(classinstance) if x not in dir(dummy())]:
+        if key == "innerElement":
+            continue
+        if key == "long_point":
+            for point in getattr(classinstance, "long_point"):
+                result["long_point"].append(dict_from_object(point))
+        else:
+            verifydict(result)[key] = getattr(classinstance, key)
+    
+
+    return result
+
+def new_chart() -> chartRootXML:
+    return chartRootXML(createEmptyChartXML())
+
+
+#Where 'element' is a bpm, measure, step, or point.
+#Element is added to the chart by default or removed from the chart (if it exists) if remove == True
+def update_chart(chart: chartRootXML, element, remove = False, point_parent_step = None) -> Result:
+    if type(element) == stepXML:
+        if remove:
+            return chart.sequence_data.remove(element)
+        
+        exists = chart.sequence_data.getElement(element)
+
+        if exists is not None:
+            return Result.NOTE_ALREADY_EXISTS
+        chart.sequence_data.append(element)
+
+        for point in element.long_point:
+            update_chart(chart, point, point_parent_step = element)
+        return Result.SUCCESS
+
+    if type(element) == measureXML:
+        if remove:
+            return chart.info.measure_info.remove(element)
+
+        exists = chart.info.measure_info.getElement(element)
+
+        if exists is not None:
+            return Result.MEASURE_ALREADY_EXISTS
+        chart.info.measure_info.append(element)
+        return Result.SUCCESS
+    
+    if type(element) == bpmXML:
+        if remove:
+            return chart.info.bpm_info.remove(element)
+
+        exists = chart.info.bpm_info.getElement(element)
+
+        if exists is not None:
+            return Result.BPM_ALREADY_EXISTS
+        chart.info.bpm_info.append(element)
+        return Result.SUCCESS
+
+    if type(element) == pointXML: 
+        if point_parent_step is None:
+            return Result.INVALID_LONG_POINT
+        
+        if point_parent_step not in chart.sequence_data:
+            return Result.NOTE_DOESNT_EXIST
+
+        if remove:
+            return chart.sequence_data.getElement(point_parent_step).long_point.remove(element)
+
+        exists = chart.sequence_data.getElement(point_parent_step).long_point.getElement(element)
+
+        if exists is not None:
+            return Result.POINT_ALREADY_EXISTS
+        chart.sequence_data.getElement(point_parent_step).long_point.append(element)
+        return Result.SUCCESS
+
+def update_chart_diff(chart: chartRootXML, element, remove = False, point_parent_step = None, diff = []) -> Result:
+    result = update_chart(chart, element, remove = remove, point_parent_step = point_parent_step)
+    if result == Result.SUCCESS:
+        diff.append({element, remove})
+
+    return result

@@ -105,7 +105,7 @@ def api():
                     if result == Result.SUCCESS:
                         return new_response(result = apiresults["SUCCESS"], diff = diff) 
                     else:
-                        return new_response(result = apiresults["FAIL"], error_info = result.name)
+                        return new_response(result = apiresults["FAILED"], error_info = result.name)
             except KeyError:
                 return new_response(result = apiresults["BAD_DATA"]) 
    

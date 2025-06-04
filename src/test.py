@@ -548,6 +548,18 @@ class TestAPINew(unittest.TestCase):
             result = client.post("/api", json = new_request(function = "get_measures"))
             self.assertEqual(len(result.json["data"]["measures"]), 1)
 
+            #Can't add duplicate step, and error info is passed through
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict] ))
+            self.assertEqual(result.json["head"]["result"], "FAILED") 
+            self.assertEqual(result.json["data"]["error_info"], "NOTE_ALREADY_EXISTS")
+
+            #Can remove step
+            stepdict["exists"] = 0
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict] ))
+            self.assertEqual(len(result.json["data"]["diff"]), 1)
+
+            result = client.post("/api", json = new_request(function = "get_steps"))
+            self.assertEqual(len(result.json["data"]["steps"]), 1)
 
 if __name__ == "__main__":
     #Charts for dynamic analysis testing (ie not for unit tests)

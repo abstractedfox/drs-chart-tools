@@ -1,5 +1,7 @@
 DRS Chart Tools: Tools for modifying chart and music database data for Dancerush Stardom.
 
+#### This project is undergoing a deep refactor! The old (outdated) readme follows for posterity.
+
 Presently this is really only something that would be useful to a programmer; there is no interface for a typical user to start making their own charts yet.
 
 chart_tools.py: Functions to modify a dancerush chart. Mostly just handles putting xml elements where they belong and error checking that values are within appropriate bounds. Capable of modifying existing charts and generating empty ones.

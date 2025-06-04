@@ -16,31 +16,35 @@ At present, we have:
 
 #### API reference:
 Requests should be JSON objects that look like:
-`{ 
+```
+{ 
     "head": 
         {
-            "function": __mandatory__ *function being called*
-                *possible values: init, save, close_session, update_chart, get_steps, get_bpms, get_measures, introspect_has_session*
+            "function": /*mandatory*/ "name of function"
+                /*possible values: init, save, close_session, update_chart, get_steps, get_bpms, get_measures, introspect_has_session*/
         },
     "data":
         {
-            "filename": __only when calling init__ *filename (or path) to be used on initialization*
-            "changes": __only when calling update_chart__ *chart elements as json obejcts*
+            "filename": /*only when calling init*/ "filename (or path) to be used on initialization"
+            "changes": /*only when calling update_chart*/ "chart elements as json objects"
         }
-}`
+}
+```
 
 Responses look like:
-`{ 
+```
+{ 
     "head": 
         {
-            "result": __always__ *status of the operation*
+            "result": /*always*/ "status of the operation"
         },
     "data":
         {
-            "error_info": __sometimes__ *may contain extra data about some errors*,
-            "steps": __sometimes__ *steps returned after a call to get_steps*,
-            "bpms": __sometimes__ *bpms returned after a call to get_bpms*,
-            "measures": __sometimes__,
-            "diff": __sometimes__ *The diff after an operation that modifies the chart*
+            "error_info": /*sometimes, may contain extra data about some errors */,
+            "steps": /*sometimes, steps returned after a call to get_steps*/,
+            "bpms": /*sometimes, bpms returned after a call to get_bpms*/,
+            "measures": /*sometimes*/,
+            "diff": /*sometimes, the diff after an operation that modifies the chart*/
         }
-}`
+}
+```

@@ -1,18 +1,15 @@
 from _chart_tools_deprecated import *
 from common import *
-#from _chart_tools_api_deprecated import *
-import _chart_tools_api_deprecated
 
 import xml.etree.ElementTree
 import sys
 import unittest
-import subprocess
-import shutil
 import hashlib
-import requests
 
 #post refactor imports
 from chart_tools_new import *
+from app import app, new_request
+import os
 
 testchart1md5sum = "b658ba41ebd45383617d91d59e83ed6b"
 
@@ -286,83 +283,6 @@ class TestChartXMLInterface(unittest.TestCase):
         self.assertEqual(len(testChart.steps[4].long_point), 0)
 
 
-class TestCharts(unittest.TestCase):
-    def testTestChart1(self):
-        with open("testchart1.xml", "rb") as file:
-            md5out = hashlib.md5(file.read()).hexdigest()
-
-            self.assertEqual(md5out, testchart1md5sum, "testchart1.xml checksum == expected checksum")
-
-
-    def testAPI(self):
-        session = _chart_tools_api_deprecated.Session()
-
-        command = _chart_tools_api_deprecated.parse_command("chart load testchart1.xml")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-        self.assertIsNotNone(session.chart)
-
-        command = _chart_tools_api_deprecated.parse_command("bpm add 57300 0")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-
-        command = _chart_tools_api_deprecated.parse_command("bpm remove 57300 0")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-        
-        command = _chart_tools_api_deprecated.parse_command("note add 100 100 100 200 1 0")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-        
-        command = _chart_tools_api_deprecated.parse_command("note remove 100 100 100 200 1 0")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-      
-        command = _chart_tools_api_deprecated.parse_command("measure add 4 4 10")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-        
-        command = _chart_tools_api_deprecated.parse_command("measure remove 4 4 10")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-        
-        command = _chart_tools_api_deprecated.parse_command("chart save apisavetest.xml")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-        
-        command = _chart_tools_api_deprecated.parse_command("chart get")
-        chartResponse = _chart_tools_api_deprecated.dispatch_command(command, session)
-        self.assertEqual(chartResponse.split('\n')[0], "note 3840 3840 16384 32768 1 0", "First line of api 'chart get' response")
-
-        #sanity check
-        self.assertFalse(session.chart.steps[-1].start_tick == 100)
-
-        #long points
-        command = _chart_tools_api_deprecated.parse_command("note add 100 100 100 200 1 0")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-      
-        #adding a valid hold works (tick at 100, same as the parent note)
-        command = _chart_tools_api_deprecated.parse_command("hold add 100 100 100 200 1 0 200 100 200")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-        
-        #make sure it added correctly
-        self.assertEqual(session.chart.steps[-1].start_tick, 100)
-        self.assertEqual(len(session.chart.steps[-1].long_point), 1)
-        self.assertEqual(session.chart.steps[-1].long_point[0].tick, 200)
-
-        #adding an invalid hold (time earlier than last tick in the note) does not work
-        command = _chart_tools_api_deprecated.parse_command("hold add 100 200 100 200 1 0 100 100 200")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.TIME_OUT_OF_BOUNDS, command.unparsed)
-
-        #adding another correct one does work
-        command = _chart_tools_api_deprecated.parse_command("hold add 100 200 100 200 1 0 300 100 200")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-
-        #removing one
-        command = _chart_tools_api_deprecated.parse_command("hold remove 100 300 100 200 1 0 300 100 200")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-       
-        #sanity check
-        self.assertEqual(len(session.chart.steps[-1].long_point), 1)
-
-        command = _chart_tools_api_deprecated.parse_command("note remove 100 300 100 200 1 0")
-        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
-
-    def testCommandLine(self):
-        commandline = "python3.12 _chart_tools_api_deprecated.py init testyy.xml : bpm add 57300 0"
-
 class TestChartToolsNew(unittest.TestCase):
     def test_dict_factory(self):
         bpmdict = new_bpm_info_dict(bpm = 100)
@@ -541,18 +461,96 @@ class TestChartToolsNew(unittest.TestCase):
         self.assertEqual(len(chart.sequence_data[0].long_point), 0)
 
 class TestAPINew(unittest.TestCase):
-    def test_send_request(self):
-        from app import app
+    def test_api_basic(self):
         app.testing = True
 
         with app.test_client() as client:
             result = client.post("/api", json={"hi": ["this is a list", "hii"]})
-            self.assertEqual(result.json["head"]["result"], "BAD_REQUEST")
+            self.assertEqual(result.json["head"]["result"], "BAD_REQUEST", "Gracefully handles bad requests")
 
             result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newchart.xml"}})
+            self.assertEqual(result.json["head"]["result"], "SUCCESS", "Returns SUCCESS when initializing with a new chart")
+            result = client.post("/api", json={"head": {"function": "introspect_has_session"}, "data": {}})
+            self.assertEqual(result.json["head"]["result"], "TRUE", "Session exists")
+
+            client.post("/api", json={"head": {"function": "close_session"}, "data": {}})
+            result = client.post("/api", json={"head": {"function": "introspect_has_session"}, "data": {}})
+            self.assertEqual(result.json["head"]["result"], "FALSE", "Session does not exist")
+
+    def test_update_chart(self):
+        app.testing = True
+
+        with app.test_client() as client:
+            try: 
+                os.remove("newapi_unit_test_chart.xml")
+            except FileNotFoundError:
+                pass
+            
+            client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newapi_unit_test_chart.xml"}})
+            
+            #Add a step
+            stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict] ))
             self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            self.assertEqual(result.json["data"]["diff"][0], stepdict)
+
+            #Add a bpm
+            bpmdict = new_bpm_info_dict(bpm = 100, tick = 200)
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [bpmdict] ))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            self.assertEqual(result.json["data"]["diff"][0], bpmdict)
+             
+            #Add a measure
+            measuredict = new_measure_info_dict(num = 4, denomi = 8)
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [measuredict] ))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            self.assertEqual(result.json["data"]["diff"][0], measuredict)
+            
+            #Add a step with points
+            stepdict = new_step_dict(start_tick = 100, end_tick = 200, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+            pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+            pointdict2 = new_point_dict(tick = 100, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+            stepdict["long_point"].append(pointdict)
+            stepdict["long_point"].append(pointdict2)
+
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict] ))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            self.assertEqual(result.json["data"]["diff"][0], stepdict)
+            self.assertEqual(result.json["data"]["diff"][0]["long_point"], stepdict["long_point"])
+            self.assertEqual(len(result.json["data"]["diff"][0]["long_point"]), 2)
+
+            #Test retrieval, also verify that the diffs are actually being written to the chart
+            result = client.post("/api", json = new_request(function = "get_steps"))
+            self.assertEqual(len(result.json["data"]["steps"]), 2)
+            self.assertEqual(len(result.json["data"]["steps"][1]["long_point"]), 2)
+
+            result = client.post("/api", json = new_request(function = "get_bpms"))
+            self.assertEqual(len(result.json["data"]["bpms"]), 1)
+             
+            result = client.post("/api", json = new_request(function = "get_measures"))
+            self.assertEqual(len(result.json["data"]["measures"]), 1)
+    
+            #Save the chart to a file
+            result = client.post("/api", json = new_request(function = "save"))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            self.assertTrue(os.path.isfile("newapi_unit_test_chart.xml"), True)
+
+            #Open a chart from a file and retest retrieval
+            client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newapi_unit_test_chart.xml"}})
+            
+            result = client.post("/api", json = new_request(function = "get_steps"))
+            self.assertEqual(len(result.json["data"]["steps"]), 2)
+            self.assertEqual(len(result.json["data"]["steps"][1]["long_point"]), 2)
+
+            result = client.post("/api", json = new_request(function = "get_bpms"))
+            self.assertEqual(len(result.json["data"]["bpms"]), 1)
+             
+            result = client.post("/api", json = new_request(function = "get_measures"))
+            self.assertEqual(len(result.json["data"]["measures"]), 1)
+
 
 if __name__ == "__main__":
+    #Charts for dynamic analysis testing (ie not for unit tests)
     generateCompleteChart()
     generateTestChart()
     generateEffectSyncTest()

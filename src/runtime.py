@@ -23,6 +23,6 @@ class Session:
             self.chart_instance = chartRootXML(createEmptyChartXML())
 
     def save(self):
-        self.chart_instance.save()
+        return save_chart(self.chart_instance, self.path) 
 
     

@@ -13,6 +13,8 @@ import requests
 
 #post refactor imports
 from chart_tools_new import *
+from app import app, new_request
+import os
 
 testchart1md5sum = "b658ba41ebd45383617d91d59e83ed6b"
 
@@ -541,16 +543,93 @@ class TestChartToolsNew(unittest.TestCase):
         self.assertEqual(len(chart.sequence_data[0].long_point), 0)
 
 class TestAPINew(unittest.TestCase):
-    def test_send_request(self):
-        from app import app
+    def test_api_basic(self):
         app.testing = True
 
         with app.test_client() as client:
             result = client.post("/api", json={"hi": ["this is a list", "hii"]})
-            self.assertEqual(result.json["head"]["result"], "BAD_REQUEST")
+            self.assertEqual(result.json["head"]["result"], "BAD_REQUEST", "Gracefully handles bad requests")
 
             result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newchart.xml"}})
+            self.assertEqual(result.json["head"]["result"], "SUCCESS", "Returns SUCCESS when initializing with a new chart")
+            result = client.post("/api", json={"head": {"function": "introspect_has_session"}, "data": {}})
+            self.assertEqual(result.json["head"]["result"], "TRUE", "Session exists")
+
+            client.post("/api", json={"head": {"function": "close_session"}, "data": {}})
+            result = client.post("/api", json={"head": {"function": "introspect_has_session"}, "data": {}})
+            self.assertEqual(result.json["head"]["result"], "FALSE", "Session does not exist")
+
+    def test_update_chart(self):
+        app.testing = True
+
+        with app.test_client() as client:
+            try: 
+                os.remove("newapi_unit_test_chart.xml")
+            except FileNotFoundError:
+                pass
+            
+            client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newapi_unit_test_chart.xml"}})
+            
+            #Add a step
+            stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict] ))
             self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            self.assertEqual(result.json["data"]["diff"][0], stepdict)
+
+            #Add a bpm
+            bpmdict = new_bpm_info_dict(bpm = 100, tick = 200)
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [bpmdict] ))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            self.assertEqual(result.json["data"]["diff"][0], bpmdict)
+             
+            #Add a measure
+            measuredict = new_measure_info_dict(num = 4, denomi = 8)
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [measuredict] ))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            self.assertEqual(result.json["data"]["diff"][0], measuredict)
+            
+            #Add a step with points
+            stepdict = new_step_dict(start_tick = 100, end_tick = 200, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+            pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+            pointdict2 = new_point_dict(tick = 100, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+            stepdict["long_point"].append(pointdict)
+            stepdict["long_point"].append(pointdict2)
+
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict] ))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            self.assertEqual(result.json["data"]["diff"][0], stepdict)
+            self.assertEqual(result.json["data"]["diff"][0]["long_point"], stepdict["long_point"])
+            self.assertEqual(len(result.json["data"]["diff"][0]["long_point"]), 2)
+
+            #Test retrieval, also verify that the diffs are actually being written to the chart
+            result = client.post("/api", json = new_request(function = "get_steps"))
+            self.assertEqual(len(result.json["data"]["steps"]), 2)
+            self.assertEqual(len(result.json["data"]["steps"][1]["long_point"]), 2)
+
+            result = client.post("/api", json = new_request(function = "get_bpms"))
+            self.assertEqual(len(result.json["data"]["bpms"]), 1)
+             
+            result = client.post("/api", json = new_request(function = "get_measures"))
+            self.assertEqual(len(result.json["data"]["measures"]), 1)
+    
+            #Save the chart to a file
+            result = client.post("/api", json = new_request(function = "save"))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            self.assertTrue(os.path.isfile("newapi_unit_test_chart.xml"), True)
+
+            #Open a chart from a file and retest retrieval
+            client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newapi_unit_test_chart.xml"}})
+            
+            result = client.post("/api", json = new_request(function = "get_steps"))
+            self.assertEqual(len(result.json["data"]["steps"]), 2)
+            self.assertEqual(len(result.json["data"]["steps"][1]["long_point"]), 2)
+
+            result = client.post("/api", json = new_request(function = "get_bpms"))
+            self.assertEqual(len(result.json["data"]["bpms"]), 1)
+             
+            result = client.post("/api", json = new_request(function = "get_measures"))
+            self.assertEqual(len(result.json["data"]["measures"]), 1)
+
 
 if __name__ == "__main__":
     generateCompleteChart()

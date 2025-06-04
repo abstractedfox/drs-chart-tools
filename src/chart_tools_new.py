@@ -167,9 +167,21 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
         chart.sequence_data.getElement(point_parent_step).long_point.append(element)
         return Result.SUCCESS
 
-def update_chart_diff(chart: chartRootXML, element, remove = False, point_parent_step = None, diff = []) -> Result:
+def update_chart_diff(chart: chartRootXML, element, remove = False, point_parent_step = None, diff = [], diff_as_dicts = True) -> Result:
     result = update_chart(chart, element, remove = remove, point_parent_step = point_parent_step)
     if result == Result.SUCCESS:
-        diff.append({element, remove})
+        if diff_as_dicts: 
+            diff.append(dict_from_object(element))
+            diff[-1]["exists"] = not remove
+        else:
+            diff.append({element, remove})
 
     return result
+
+def save_chart(chart: chartRootXML, filename: str) -> Result:
+    chart.info.end_tick = 0
+    for step in chart.sequence_data:
+        if step.end_tick > chart.info.end_tick:
+            chart.info.end_tick = step.end_tick
+
+    return chart.write(filename)

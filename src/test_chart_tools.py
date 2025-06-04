@@ -1,7 +1,7 @@
-from chart_tools import *
+from _chart_tools_deprecated import *
 from common import *
-#from chart_tools_api import *
-import chart_tools_api
+#from _chart_tools_api_deprecated import *
+import _chart_tools_api_deprecated
 
 import xml.etree.ElementTree
 import sys
@@ -295,47 +295,47 @@ class TestCharts(unittest.TestCase):
 
 
     def testAPI(self):
-        session = chart_tools_api.Session()
+        session = _chart_tools_api_deprecated.Session()
 
-        command = chart_tools_api.parse_command("chart load testchart1.xml")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("chart load testchart1.xml")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         self.assertIsNotNone(session.chart)
 
-        command = chart_tools_api.parse_command("bpm add 57300 0")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("bpm add 57300 0")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
 
-        command = chart_tools_api.parse_command("bpm remove 57300 0")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("bpm remove 57300 0")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         
-        command = chart_tools_api.parse_command("note add 100 100 100 200 1 0")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("note add 100 100 100 200 1 0")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         
-        command = chart_tools_api.parse_command("note remove 100 100 100 200 1 0")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("note remove 100 100 100 200 1 0")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
       
-        command = chart_tools_api.parse_command("measure add 4 4 10")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("measure add 4 4 10")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         
-        command = chart_tools_api.parse_command("measure remove 4 4 10")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("measure remove 4 4 10")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         
-        command = chart_tools_api.parse_command("chart save apisavetest.xml")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("chart save apisavetest.xml")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         
-        command = chart_tools_api.parse_command("chart get")
-        chartResponse = chart_tools_api.dispatch_command(command, session)
+        command = _chart_tools_api_deprecated.parse_command("chart get")
+        chartResponse = _chart_tools_api_deprecated.dispatch_command(command, session)
         self.assertEqual(chartResponse.split('\n')[0], "note 3840 3840 16384 32768 1 0", "First line of api 'chart get' response")
 
         #sanity check
         self.assertFalse(session.chart.steps[-1].start_tick == 100)
 
         #long points
-        command = chart_tools_api.parse_command("note add 100 100 100 200 1 0")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("note add 100 100 100 200 1 0")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
       
         #adding a valid hold works (tick at 100, same as the parent note)
-        command = chart_tools_api.parse_command("hold add 100 100 100 200 1 0 200 100 200")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("hold add 100 100 100 200 1 0 200 100 200")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
         
         #make sure it added correctly
         self.assertEqual(session.chart.steps[-1].start_tick, 100)
@@ -343,25 +343,25 @@ class TestCharts(unittest.TestCase):
         self.assertEqual(session.chart.steps[-1].long_point[0].tick, 200)
 
         #adding an invalid hold (time earlier than last tick in the note) does not work
-        command = chart_tools_api.parse_command("hold add 100 200 100 200 1 0 100 100 200")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.TIME_OUT_OF_BOUNDS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("hold add 100 200 100 200 1 0 100 100 200")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.TIME_OUT_OF_BOUNDS, command.unparsed)
 
         #adding another correct one does work
-        command = chart_tools_api.parse_command("hold add 100 200 100 200 1 0 300 100 200")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("hold add 100 200 100 200 1 0 300 100 200")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
 
         #removing one
-        command = chart_tools_api.parse_command("hold remove 100 300 100 200 1 0 300 100 200")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("hold remove 100 300 100 200 1 0 300 100 200")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
        
         #sanity check
         self.assertEqual(len(session.chart.steps[-1].long_point), 1)
 
-        command = chart_tools_api.parse_command("note remove 100 300 100 200 1 0")
-        self.assertEqual(chart_tools_api.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
+        command = _chart_tools_api_deprecated.parse_command("note remove 100 300 100 200 1 0")
+        self.assertEqual(_chart_tools_api_deprecated.dispatch_command(command, session), Result.SUCCESS, command.unparsed)
 
     def testCommandLine(self):
-        commandline = "python3.12 chart_tools_api.py init testyy.xml : bpm add 57300 0"
+        commandline = "python3.12 _chart_tools_api_deprecated.py init testyy.xml : bpm add 57300 0"
 
 class TestChartToolsNew(unittest.TestCase):
     def test_dict_factory(self):

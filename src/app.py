@@ -7,7 +7,7 @@ app = Flask(__name__)
 session = None
 
 def new_response():
-    return {"head": {"result": ""}}
+    return {"head": {"result": ""}, "data": {}}
 
 apiresults = {
     "BAD_REQUEST": "BAD_REQUEST",

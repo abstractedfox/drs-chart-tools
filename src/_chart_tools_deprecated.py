@@ -1,3 +1,6 @@
+#This file has been deprecated!
+#For now it's still necessary for some unit tests that use it to generate test charts, but don't use it for anything new
+
 from chart_xml_interface import *
 from common import *
 

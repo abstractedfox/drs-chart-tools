@@ -1,4 +1,4 @@
-from chart_tools import *
+from _chart_tools_deprecated import *
 import sys
 
 class command_struct:

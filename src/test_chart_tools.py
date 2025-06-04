@@ -9,6 +9,7 @@ import unittest
 import subprocess
 import shutil
 import hashlib
+import requests
 
 #post refactor imports
 from chart_tools_new import *
@@ -539,6 +540,17 @@ class TestChartToolsNew(unittest.TestCase):
         self.assertEqual(update_chart(chart, point1, point_parent_step = step1, remove = True), Result.SUCCESS)
         self.assertEqual(len(chart.sequence_data[0].long_point), 0)
 
+class TestAPINew(unittest.TestCase):
+    def test_send_request(self):
+        from app import app
+        app.testing = True
+
+        with app.test_client() as client:
+            result = client.post("/api", json={"hi": ["this is a list", "hii"]})
+            self.assertEqual(result.json["head"]["result"], "BAD_REQUEST")
+
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newchart.xml"}})
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
 
 if __name__ == "__main__":
     generateCompleteChart()

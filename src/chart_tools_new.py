@@ -166,3 +166,10 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
             return Result.POINT_ALREADY_EXISTS
         chart.sequence_data.getElement(point_parent_step).long_point.append(element)
         return Result.SUCCESS
+
+def update_chart_diff(chart: chartRootXML, element, remove = False, point_parent_step = None, diff = []) -> Result:
+    result = update_chart(chart, element, remove = remove, point_parent_step = point_parent_step)
+    if result == Result.SUCCESS:
+        diff.append({element, remove})
+
+    return result

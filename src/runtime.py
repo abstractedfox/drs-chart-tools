@@ -1,4 +1,5 @@
 from chart_tools_new import *
+import uuid
 
 class LogLevel(Enum):
     BASIC = 0
@@ -16,6 +17,8 @@ class Session:
     def __init__(self, path):
         self.path = path
         self.chart_instance = None
+        self.ID = uuid.uuid4().hex #str
+
         try:
             self.chart_instance = load_from_file(path)
         except FileNotFoundError:

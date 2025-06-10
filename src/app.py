@@ -5,6 +5,7 @@ from flask import Flask, jsonify, request
 app = Flask(__name__)
 
 _session = None
+_sessions = {}
 
 apiresults = {
     "UNDEFINED": "UNDEFINED",
@@ -15,10 +16,11 @@ apiresults = {
     "TRUE": "TRUE",
     "FALSE": "FALSE",
     "INVALID_FUNCTION": "INVALID_FUNCTION",
-    "FAILED": "FAILED"
+    "FAILED": "FAILED",
+    "INVALID_SESSION": "INVALID_SESSION",
 }
 
-def new_response(result = apiresults["UNDEFINED"], error_info = None, diff = [], steps = [], bpms = [], measures = []):
+def new_response(result = apiresults["UNDEFINED"], error_info = None, diff = [], steps = [], bpms = [], measures = [], session_ID = None):
     response = {"head": {"result": result}, "data": {}}
     if result not in apiresults:
         raise NameError("\"{}\" not found in apiresults.".format(result))
@@ -46,13 +48,20 @@ def new_response(result = apiresults["UNDEFINED"], error_info = None, diff = [],
             raise TypeError("Diff must be a list")
         response["data"]["diff"] = diff
 
+    if session_ID:
+        response["head"]["id"] = session_ID
+
     #where head["result"] is the result of an operation (if relevant) and data is any data (if relevant)
     return response 
 
 #Request reference, also useful for testing
-def new_request(function = "", data = {}, changes = [], filename = None):
+def new_request(function = "", data = {}, changes = [], filename = None, session_ID = None):
     request = {"head": {"function": function}, "data": data}
 
+    #implementations shouldn't make this optional
+    if session_ID:
+        request["head"]["id"] = session_ID
+    
     match function:
         case "init":
             data["filename"] = filename
@@ -80,10 +89,12 @@ def new_request(function = "", data = {}, changes = [], filename = None):
 
     return request
 
+#TODO: Once tests are changed to reflect the change to multiple sessions, get rid of _session and clean up any code that handles switching _session and _sessions
 @app.route("/api", methods=["POST"])
 def api():
     global _session
-    
+    global _sessions
+
     log("Received request: {}".format(request.json))
     if "head" not in request.json:
         response = new_response()
@@ -92,13 +103,26 @@ def api():
    
     head = request.json["head"]
     data = request.json["data"]
+    session_ID = None
+    if "id" in data and data["function"] != "init":
+        session_ID = data["id"]
+    
     match head["function"]:
         case "init":
-            _session = Session(path = data["filename"]) 
-            return new_response(result = apiresults["SUCCESS"])
+            if session_ID:
+                new_session = Session(path = data["filename"])
+                _sessions[new_session.ID] = new_session
+            else:
+                new_session = Session(path = data["filename"]) 
+                _session = new_session 
+            
+            return new_response(result = apiresults["SUCCESS"], session_ID = new_session.ID)
 
         case "save":
-            result = _session.save() 
+            if session_ID:
+                result = _sessions[session_ID].save()
+            else:
+                result = _session.save() 
 
             if result == Result.SUCCESS:
                 return new_response(result = apiresults["SUCCESS"])
@@ -106,13 +130,27 @@ def api():
                 return new_response(result = apiresults["FAILED"], error_info = result.name)
 
         case "close_session":
-            _session = None
+            if session_ID:
+                try:
+                    _sessions.pop(session_ID)
+                except KeyError:
+                    return new_response(result = apiresults("INVALID_SESSION"))
+            else:
+                _session = None
+            
             return new_response(result = apiresults["SUCCESS"])
     
         case "update_chart":
-            if _session is None:
+            current_session = None
+            if session_ID:
+                if session_ID not in _sessions:
+                    return new_response(result = apiresults["INVALID_SESSION"])
+                current_session = _sessions[session_ID]
+            elif _session is None:
                 return new_response(result = apiresults["NOT_INITIALIZED"])
-            
+            else:
+                current_session = _session
+
             try:
                 for element in data["changes"]:
                     new_element_as_object = object_from_dict(element)
@@ -121,7 +159,7 @@ def api():
                         return new_response(result = apiresults["BAD_DATA"], error_info = "Could not convert dict {} to an xml wrapper class".format(element))
                     
                     diff = []
-                    result = update_chart_diff(_session.chart_instance, new_element_as_object, remove = not element["exists"], diff = diff)
+                    result = update_chart_diff(current_session.chart_instance, new_element_as_object, remove = not element["exists"], diff = diff)
                     
                     if result == Result.SUCCESS:
                         return new_response(result = apiresults["SUCCESS"], diff = diff) 
@@ -131,28 +169,49 @@ def api():
                 return new_response(result = apiresults["BAD_DATA"]) 
    
         case "get_steps":
-            if _session is None:
+            current_session = None
+            if session_ID:
+                if session_ID not in _sessions:
+                    return new_response(result = apiresults["INVALID_SESSION"])
+                current_session = _sessions[session_ID]
+            elif _session is None:
                 return new_response(result = apiresults["NOT_INITIALIZED"])
+            else:
+                current_session = _session
 
             steps = []
-            for element in _session.chart_instance.sequence_data:
+            for element in current_session.chart_instance.sequence_data:
                 steps.append(dict_from_object(element))
 
             return new_response(result = apiresults["SUCCESS"], steps = steps)
         
         case "get_bpms":
-            if _session is None:
+            current_session = None
+            if session_ID:
+                if session_ID not in _sessions:
+                    return new_response(result = apiresults["INVALID_SESSION"])
+                current_session = _sessions[session_ID]
+            elif _session is None:
                 return new_response(result = apiresults["NOT_INITIALIZED"])
+            else:
+                current_session = _session
 
             bpms = []
-            for element in _session.chart_instance.info.bpm_info:
+            for element in current_session.chart_instance.info.bpm_info:
                 bpms.append(dict_from_object(element))
 
             return new_response(result = apiresults["SUCCESS"], bpms = bpms)
 
         case "get_measures":
-            if _session is None:
+            current_session = None
+            if session_ID:
+                if session_ID not in _sessions:
+                    return new_response(result = apiresults["INVALID_SESSION"])
+                current_session = _sessions[session_ID]
+            elif _session is None:
                 return new_response(result = apiresults["NOT_INITIALIZED"])
+            else:
+                current_session = _session
 
             measures = []
             for element in _session.chart_instance.info.measure_info:
@@ -162,7 +221,7 @@ def api():
 
 
         case "introspect_has_session":
-            if _session is None:
+            if _session is None and len(_sessions) == 0:
                 return new_response(result = apiresults["FALSE"])
             return new_response(result = apiresults["TRUE"])
 

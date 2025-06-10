@@ -49,15 +49,19 @@ def new_response(result = apiresults["UNDEFINED"], error_info = None, diff = [],
         response["data"]["diff"] = diff
 
     if session_ID:
-        response["id"] = session_ID
+        response["head"]["id"] = session_ID
 
     #where head["result"] is the result of an operation (if relevant) and data is any data (if relevant)
     return response 
 
 #Request reference, also useful for testing
-def new_request(function = "", data = {}, changes = [], filename = None):
+def new_request(function = "", data = {}, changes = [], filename = None, session_ID = None):
     request = {"head": {"function": function}, "data": data}
 
+    #implementations shouldn't make this optional
+    if session_ID:
+        request["head"]["id"] = session_ID
+    
     match function:
         case "init":
             data["filename"] = filename
@@ -99,7 +103,7 @@ def api():
     head = request.json["head"]
     data = request.json["data"]
     session_ID = None
-    if "id" in data:
+    if "id" in data and data["function"] != "init":
         session_ID = data["id"]
     
     match head["function"]:

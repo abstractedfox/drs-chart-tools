@@ -20,8 +20,9 @@ Requests should be JSON objects that look like:
 { 
     "head": 
         {
-            "function": /*mandatory*/ "name of function"
+            "function": /*mandatory*/ "name of function",
                 /*possible values: init, save, close_session, update_chart, get_steps, get_bpms, get_measures, introspect_has_session*/
+            "id": /*mandatory, except when calling 'init'*/ "session ID",
         },
     "data":
         {
@@ -36,7 +37,8 @@ Responses look like:
 { 
     "head": 
         {
-            "result": /*always*/ "status of the operation"
+            "result": /*always*/ "status of the operation",
+            "id": /*always*/ "id of the session affected"
         },
     "data":
         {

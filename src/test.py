@@ -561,6 +561,28 @@ class TestAPINew(unittest.TestCase):
             result = client.post("/api", json = new_request(function = "get_steps"))
             self.assertEqual(len(result.json["data"]["steps"]), 1)
 
+class TestAPISessions(unittest.TestCase):
+    def test_session_ID(self):
+        app.testing = True
+
+        with app.test_client() as client:
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newchart.xml"}})
+            self.assertEqual(type(result.json["head"]["id"]), type("")) 
+            self.assertNotEqual(result.json["head"]["id"], "") 
+
+            session_ID = result.json["head"]["id"]
+
+            stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session_ID))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            self.assertEqual(result.json["data"]["diff"][0], stepdict)
+
+            result = client.post("/api", json = new_request(function = "get_steps", session_ID = session_ID))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            self.assertEqual(len(result.json["data"]["steps"]), 1)
+
+            #TODO: Actually redo the rest of the tests to work like this and delete these 
+
 if __name__ == "__main__":
     #Charts for dynamic analysis testing (ie not for unit tests)
     generateCompleteChart()

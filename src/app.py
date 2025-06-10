@@ -50,12 +50,33 @@ def new_response(result = apiresults["UNDEFINED"], error_info = None, diff = [],
     return response 
 
 #Request reference, also useful for testing
-def new_request(function = "", data = {}, changes = []):
+def new_request(function = "", data = {}, changes = [], filename = None):
     request = {"head": {"function": function}, "data": data}
 
     match function:
+        case "init":
+            data["filename"] = filename
+        
+        case "save":
+            pass
+
+        case "close_session":
+            pass
+
         case "update_chart":
             data["changes"] = changes
+
+        case "get_steps":
+            pass
+
+        case "get_bpms":
+            pass
+
+        case "get_measures":
+            pass
+
+        case "introspect_has_session":
+            pass
 
     return request
 

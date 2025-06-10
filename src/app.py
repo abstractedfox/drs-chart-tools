@@ -89,6 +89,7 @@ def new_request(function = "", data = {}, changes = [], filename = None, session
 
     return request
 
+#TODO: Once tests are changed to reflect the change to multiple sessions, get rid of _session and clean up any code that handles switching _session and _sessions
 @app.route("/api", methods=["POST"])
 def api():
     global _session

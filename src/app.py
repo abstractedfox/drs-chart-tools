@@ -1,3 +1,5 @@
+from warnings import warn
+
 from runtime import *
 
 from flask import Flask, jsonify, request
@@ -114,15 +116,15 @@ def api():
     
     match head["function"]:
         case "init":
+            if "raw_chart" in data:
+                with open(data["filename"], "w") as newchart:
+                    newchart.write(data["raw_chart"])
+            
             new_session = Session(path = data["filename"])
             _sessions[new_session.ID] = new_session
             
             #scaffolding to avoid breaking old tests (delete once old tests no longer expect a single session)
             _session = [_sessions[s] for s in _sessions][-1]
-
-            if "raw_chart" in data:
-                with open(data["filename"], "w") as newchart:
-                    newchart.write(data["raw_chart"])
     
             return new_response(result = apiresults["SUCCESS"], session_ID = new_session.ID)
 
@@ -190,6 +192,9 @@ def api():
             steps = []
             for element in current_session.chart_instance.sequence_data:
                 steps.append(dict_from_object(element))
+
+            if len(steps) == 0:
+                warn("get_steps called with zero steps, session_ID = {}".format(session_ID), RuntimeWarning)
 
             return new_response(result = apiresults["SUCCESS"], steps = steps)
         

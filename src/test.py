@@ -598,6 +598,12 @@ class TestAPINew(unittest.TestCase):
                 steps1 = client.post("/api", json = new_request(function = "get_steps", session_ID = session1))
                 self.assertEqual(steps3.json["data"]["steps"], steps1.json["data"]["steps"])
 
+                #Test that we can receive the same chart as in 'session1' over the api and that it is identical to the file on disk
+                result = client.post("/api", json = new_request(function = "get_raw_chart", session_ID = session1))
+                file.seek(0)
+                self.assertEqual(file.read(), result.json["data"]["raw_chart"])
+
+
 class TestAPISessions(unittest.TestCase):
     def test_session_ID(self):
         app.testing = True

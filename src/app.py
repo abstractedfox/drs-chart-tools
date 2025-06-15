@@ -25,7 +25,7 @@ apiresults = {
     "INVALID_SESSION": "INVALID_SESSION",
 }
 
-def new_response(result = apiresults["UNDEFINED"], error_info = None, diff = [], steps = [], bpms = [], measures = [], session_ID = None):
+def new_response(result = apiresults["UNDEFINED"], error_info = None, diff = [], steps = [], bpms = [], measures = [], session_ID = None, raw_chart = None):
     response = {"head": {"result": result}, "data": {}}
     if result not in apiresults:
         raise NameError("\"{}\" not found in apiresults.".format(result))
@@ -56,7 +56,9 @@ def new_response(result = apiresults["UNDEFINED"], error_info = None, diff = [],
     if session_ID:
         response["head"]["id"] = session_ID
 
-    #where head["result"] is the result of an operation (if relevant) and data is any data (if relevant)
+    if raw_chart:
+        response["data"]["raw_chart"] = raw_chart
+
     return response 
 
 #Request reference, also useful for testing
@@ -232,6 +234,12 @@ def api():
 
             return new_response(result = apiresults["SUCCESS"], measures = measures)
 
+        case "get_raw_chart":
+            if session_ID not in _sessions:
+                return new_response(result = apiresults["INVALID_SESSION"])
+
+            with open(_sessions[session_ID].path) as chart:
+                return new_response(result = apiresults["SUCCESS"], raw_chart = chart.read())
 
         case "introspect_has_session":
             if _session is None and len(_sessions) == 0:

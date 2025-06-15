@@ -98,7 +98,7 @@ def api():
     global _session
     global _sessions
 
-    log("Received request: {}".format(request.json))
+    #log("Received request: {}".format(request.json))
     if "head" not in request.json:
         response = new_response()
         verifydict(response["head"])["result"] = apiresults["BAD_REQUEST"] 
@@ -112,13 +112,12 @@ def api():
     
     match head["function"]:
         case "init":
-            if session_ID:
-                new_session = Session(path = data["filename"])
-                _sessions[new_session.ID] = new_session
-            else:
-                new_session = Session(path = data["filename"]) 
-                _session = new_session 
+            new_session = Session(path = data["filename"])
+            _sessions[new_session.ID] = new_session
             
+            #scaffolding to avoid breaking old tests (delete once old tests no longer expect a single session)
+            _session = [_sessions[s] for s in _sessions][-1]
+
             return new_response(result = apiresults["SUCCESS"], session_ID = new_session.ID)
 
         case "save":
@@ -137,7 +136,7 @@ def api():
                 try:
                     _sessions.pop(session_ID)
                 except KeyError:
-                    return new_response(result = apiresults("INVALID_SESSION"))
+                    return new_response(result = apiresults["INVALID_SESSION"])
             else:
                 _session = None
             

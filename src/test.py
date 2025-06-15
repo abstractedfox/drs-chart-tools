@@ -473,9 +473,9 @@ class TestAPINew(unittest.TestCase):
             result = client.post("/api", json={"head": {"function": "introspect_has_session"}, "data": {}})
             self.assertEqual(result.json["head"]["result"], "TRUE", "Session exists")
 
-            client.post("/api", json={"head": {"function": "close_session"}, "data": {}})
-            result = client.post("/api", json={"head": {"function": "introspect_has_session"}, "data": {}})
-            self.assertEqual(result.json["head"]["result"], "FALSE", "Session does not exist")
+            #client.post("/api", json={"head": {"function": "close_session"}, "data": {}})
+            #result = client.post("/api", json={"head": {"function": "introspect_has_session"}, "data": {}})
+            #self.assertEqual(result.json["head"]["result"], "FALSE", "Session does not exist")
 
     def test_update_chart(self):
         app.testing = True
@@ -485,24 +485,21 @@ class TestAPINew(unittest.TestCase):
                 os.remove("newapi_unit_test_chart.xml")
             except FileNotFoundError:
                 pass
-            
-            client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newapi_unit_test_chart.xml"}})
-            
             #Add a step
             stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
-            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict] ))
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session1))
             self.assertEqual(result.json["head"]["result"], "SUCCESS")
             self.assertEqual(result.json["data"]["diff"][0], stepdict)
 
             #Add a bpm
             bpmdict = new_bpm_info_dict(bpm = 100, tick = 200)
-            result = client.post("/api", json = new_request(function = "update_chart", changes = [bpmdict] ))
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [bpmdict], session_ID = session1 ))
             self.assertEqual(result.json["head"]["result"], "SUCCESS")
             self.assertEqual(result.json["data"]["diff"][0], bpmdict)
              
             #Add a measure
             measuredict = new_measure_info_dict(num = 4, denomi = 8)
-            result = client.post("/api", json = new_request(function = "update_chart", changes = [measuredict] ))
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [measuredict], session_ID = session1 ))
             self.assertEqual(result.json["head"]["result"], "SUCCESS")
             self.assertEqual(result.json["data"]["diff"][0], measuredict)
             
@@ -513,52 +510,64 @@ class TestAPINew(unittest.TestCase):
             stepdict["long_point"].append(pointdict)
             stepdict["long_point"].append(pointdict2)
 
-            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict] ))
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session1  ))
             self.assertEqual(result.json["head"]["result"], "SUCCESS")
             self.assertEqual(result.json["data"]["diff"][0], stepdict)
             self.assertEqual(result.json["data"]["diff"][0]["long_point"], stepdict["long_point"])
             self.assertEqual(len(result.json["data"]["diff"][0]["long_point"]), 2)
 
             #Test retrieval, also verify that the diffs are actually being written to the chart
-            result = client.post("/api", json = new_request(function = "get_steps"))
+            result = client.post("/api", json = new_request(function = "get_steps", session_ID = session1 ))
             self.assertEqual(len(result.json["data"]["steps"]), 2)
             self.assertEqual(len(result.json["data"]["steps"][1]["long_point"]), 2)
 
-            result = client.post("/api", json = new_request(function = "get_bpms"))
+            result = client.post("/api", json = new_request(function = "get_bpms", session_ID = session1 ))
             self.assertEqual(len(result.json["data"]["bpms"]), 1)
-             
-            result = client.post("/api", json = new_request(function = "get_measures"))
+            
+            result = client.post("/api", json = new_request(function = "get_measures", session_ID = session1 ))
             self.assertEqual(len(result.json["data"]["measures"]), 1)
     
             #Save the chart to a file
-            result = client.post("/api", json = new_request(function = "save"))
+            result = client.post("/api", json = new_request(function = "save", session_ID = session1 ))
             self.assertEqual(result.json["head"]["result"], "SUCCESS")
             self.assertTrue(os.path.isfile("newapi_unit_test_chart.xml"), True)
 
+            #Close this session
+            result = client.post("/api", json = new_request(function = "close_session", session_ID = session1 ))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+
+            #Verify that we can't use a dead session
+            result = client.post("/api", json = new_request(function = "close_session", session_ID = session1 ))
+            self.assertEqual(result.json["head"]["result"], "INVALID_SESSION")
+            stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session1))
+            self.assertEqual(result.json["head"]["result"], "INVALID_SESSION")
+
             #Open a chart from a file and retest retrieval
-            client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newapi_unit_test_chart.xml"}})
-            
-            result = client.post("/api", json = new_request(function = "get_steps"))
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newapi_unit_test_chart.xml"}})
+            session2 = result.json["head"]["id"]
+
+            result = client.post("/api", json = new_request(function = "get_steps", session_ID = session2))
             self.assertEqual(len(result.json["data"]["steps"]), 2)
             self.assertEqual(len(result.json["data"]["steps"][1]["long_point"]), 2)
 
-            result = client.post("/api", json = new_request(function = "get_bpms"))
+            result = client.post("/api", json = new_request(function = "get_bpms", session_ID = session2))
             self.assertEqual(len(result.json["data"]["bpms"]), 1)
              
-            result = client.post("/api", json = new_request(function = "get_measures"))
+            result = client.post("/api", json = new_request(function = "get_measures", session_ID = session2))
             self.assertEqual(len(result.json["data"]["measures"]), 1)
 
             #Can't add duplicate step, and error info is passed through
-            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict] ))
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session2 ))
             self.assertEqual(result.json["head"]["result"], "FAILED") 
             self.assertEqual(result.json["data"]["error_info"], "NOTE_ALREADY_EXISTS")
 
             #Can remove step
             stepdict["exists"] = 0
-            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict] ))
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session2 ))
             self.assertEqual(len(result.json["data"]["diff"]), 1)
 
-            result = client.post("/api", json = new_request(function = "get_steps"))
+            result = client.post("/api", json = new_request(function = "get_steps", session_ID = session2))
             self.assertEqual(len(result.json["data"]["steps"]), 1)
 
 class TestAPISessions(unittest.TestCase):

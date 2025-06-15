@@ -58,7 +58,7 @@ def new_response(result = apiresults["UNDEFINED"], error_info = None, diff = [],
     return response 
 
 #Request reference, also useful for testing
-def new_request(function = "", data = {}, changes = [], filename = None, session_ID = None):
+def new_request(function = "", data = {}, changes = [], filename = None, session_ID = None, raw_chart = None):
     request = {"head": {"function": function}, "data": data}
 
     #implementations shouldn't make this optional
@@ -68,10 +68,12 @@ def new_request(function = "", data = {}, changes = [], filename = None, session
     match function:
         case "init":
             data["filename"] = filename
-        
+            if raw_chart:
+                data["raw_chart"] = raw_chart
+
         case "save":
             pass
-
+        
         case "close_session":
             pass
 
@@ -118,6 +120,10 @@ def api():
             #scaffolding to avoid breaking old tests (delete once old tests no longer expect a single session)
             _session = [_sessions[s] for s in _sessions][-1]
 
+            if "raw_chart" in data:
+                with open(data["filename"], "w") as newchart:
+                    newchart.write(data["raw_chart"])
+    
             return new_response(result = apiresults["SUCCESS"], session_ID = new_session.ID)
 
         case "save":

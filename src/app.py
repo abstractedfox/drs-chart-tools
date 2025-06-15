@@ -107,8 +107,8 @@ def api():
     head = request.json["head"]
     data = request.json["data"]
     session_ID = None
-    if "id" in data and data["function"] != "init":
-        session_ID = data["id"]
+    if "id" in head and head["function"] != "init":
+        session_ID = head["id"]
     
     match head["function"]:
         case "init":

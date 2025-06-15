@@ -234,6 +234,7 @@ def api():
 
             return new_response(result = apiresults["SUCCESS"], measures = measures)
 
+        #Note that at present this gets the chart _as it exists on disk_! You have to call to save it first!
         case "get_raw_chart":
             if session_ID not in _sessions:
                 return new_response(result = apiresults["INVALID_SESSION"])

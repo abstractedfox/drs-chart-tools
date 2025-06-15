@@ -485,6 +485,14 @@ class TestAPINew(unittest.TestCase):
                 os.remove("newapi_unit_test_chart.xml")
             except FileNotFoundError:
                 pass
+            try: 
+                os.remove("rawdata_test.xml")
+            except FileNotFoundError:
+                pass
+
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newapi_unit_test_chart.xml"}})
+            session1 = result.json["head"]["id"]
+
             #Add a step
             stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
             result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session1))
@@ -569,6 +577,26 @@ class TestAPINew(unittest.TestCase):
 
             result = client.post("/api", json = new_request(function = "get_steps", session_ID = session2))
             self.assertEqual(len(result.json["data"]["steps"]), 1)
+
+            #Test 'raw chart' functionalty by making a new session and piping in the chart we just made
+            with open("newapi_unit_test_chart.xml", "r") as file:
+                #Reestablish a session for the file
+                result = client.post("/api", json = new_request(function = "init", filename="newapi_unit_test_chart.xml"))
+                session1 = result.json["head"]["id"]
+
+                chartdata = file.read()
+                result = client.post("/api", json = new_request(function = "init", filename="rawdata_test.xml", raw_chart=chartdata))
+                session3 = result.json["head"]["id"] 
+                
+                #Verify the files are identical
+                with open("rawdata_test.xml", "r") as file2:
+                    file.seek(0)
+                    self.assertEqual(hashlib.md5(file.read().encode("utf-8")).hexdigest(), hashlib.md5(file2.read().encode("utf-8")).hexdigest())
+
+                #Verify the steps too, why not
+                steps3 = client.post("/api", json = new_request(function = "get_steps", session_ID = session3))
+                steps1 = client.post("/api", json = new_request(function = "get_steps", session_ID = session1))
+                self.assertEqual(steps3.json["data"]["steps"], steps1.json["data"]["steps"])
 
 class TestAPISessions(unittest.TestCase):
     def test_session_ID(self):

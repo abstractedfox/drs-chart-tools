@@ -35,6 +35,22 @@ def testXMLInterface():
     print("step 0 kind: " + sequenceTest.sequence_data[0].kind)
     print("step 0 player_id: " + sequenceTest.sequence_data[0].player_id)
 
+def make_frontend_test_chart():
+    app.testing = True
+
+    #this does not work correctly! why do we only get the first step in the list?
+    with app.test_client() as client:
+        result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "frontendtest.xml"}})
+        session = result.json["head"]["id"]
+        
+        leftstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
+        rightstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 65536-6000, right_pos = 65536, kind = 2, player_id =1)
+        centerstep = new_step_dict(start_tick = 50, end_tick = 50, left_pos = 16384, right_pos = 49152, kind = 1, player_id = 1)
+        result = client.post("/api", json = new_request(function = "update_chart", changes = [leftstep, rightstep, centerstep], session_ID = session))
+        
+        result = client.post("/api", json = new_request(function = "save", session_ID = session))
+
+
 #Generate a chart with 92 beats of left foot steps on every beat, alternating back and forth in position, starting at the 8th beat
 def makeDummyChart():
     testChart = Chart(endTick = beatsToTicks(120, 480))
@@ -625,6 +641,65 @@ class TestAPISessions(unittest.TestCase):
             self.assertEqual(len(result.json["data"]["steps"]), 1)
 
             #TODO: Actually redo the rest of the tests to work like this and delete these 
+
+class MiscTests(unittest.TestCase):
+    #Tests against a bug where saving over an existing file caused it to be empty
+    def testWithFiles(self):
+        def removeFile():
+            try:
+                os.remove("frontendtest.xml")
+            except FileNotFoundError:
+                pass
+        
+        removeFile()
+
+        #Get a known good example of what the file should look like
+        filedata = None
+        make_frontend_test_chart()
+        with open("frontendtest.xml", "r") as file:
+            filedata = file.read()
+            self.assertTrue(len(filedata) > 0)
+
+        def check():
+            with open("frontendtest.xml", "r") as file:
+                filedata2 = file.read()
+                self.assertTrue(len(filedata2) > 0)
+                self.assertEqual(filedata, filedata2)
+        
+        removeFile()
+
+        with app.test_client() as client:
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "frontendtest.xml"}})
+            session = result.json["head"]["id"]
+            
+            leftstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
+            rightstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 65536-6000, right_pos = 65536, kind = 2, player_id =1)
+            centerstep = new_step_dict(start_tick = 50, end_tick = 50, left_pos = 16384, right_pos = 49152, kind = 1, player_id = 1)
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [leftstep, rightstep, centerstep], session_ID = session))
+            
+            result = client.post("/api", json = new_request(function = "save", session_ID = session))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+           
+            #Repeat the above save
+            result = client.post("/api", json = new_request(function = "save", session_ID = session))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            check()
+
+        #Repeat the above and verify the steps
+        with app.test_client() as client:
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "frontendtest.xml"}})
+            session = result.json["head"]["id"]
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+
+            #leftstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
+            #rightstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 65536-6000, right_pos = 65536, kind = 2, player_id =1)
+            #centerstep = new_step_dict(start_tick = 50, end_tick = 50, left_pos = 16384, right_pos = 49152, kind = 1, player_id = 1)
+            #result = client.post("/api", json = new_request(function = "update_chart", changes = [leftstep, rightstep, centerstep], session_ID = session))
+            #self.assertEqual(result.json["data"]["error_info"], "NOTE_ALREADY_EXISTS")
+
+            result = client.post("/api", json = new_request(function = "save", session_ID = session))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS", result.json["data"]["error_info"])
+            check()
 
 if __name__ == "__main__":
     #Charts for dynamic analysis testing (ie not for unit tests)

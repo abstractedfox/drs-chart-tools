@@ -8,7 +8,7 @@ class LogLevel(Enum):
     DEBUG = 3
 
 def load_from_file(path):
-    return chartRootXML(xml.etree.ElementTree.parse(path))
+    return chartRootXML(xml.etree.ElementTree.parse(path).getroot())
 
 def log(string, level = LogLevel.BASIC):
     print(string)

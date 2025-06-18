@@ -434,6 +434,8 @@ class extendDataTagXML(IXMLCollection):
 #root tag of the chart
 class chartRootXML:
     def __init__(self, dataTag: xml.etree.ElementTree.Element):
+        if not isinstance(dataTag, xml.etree.ElementTree.Element):
+            raise TypeError("Can only instantiate with an ElementTree.Element")
         self.innerElement = dataTag
 
     @property
@@ -456,10 +458,9 @@ class chartRootXML:
         return extendDataTagXML(self.innerElement.find("extend_data"))
 
     def write(self, path) -> Result:
+        assert isinstance(self.innerElement, xml.etree.ElementTree.Element)
         elementTree = xml.etree.ElementTree.ElementTree(element = self.innerElement)
-         
-        #TEMPORARY: For the time being we want to crash here and see the full traceback 
-        elementTree.write(path, 'UTF-8')
+        
         try:
             elementTree.write(path, 'UTF-8')
         except Exception as e:

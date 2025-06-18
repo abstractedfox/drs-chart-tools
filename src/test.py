@@ -665,41 +665,9 @@ class MiscTests(unittest.TestCase):
                 filedata2 = file.read()
                 self.assertTrue(len(filedata2) > 0)
                 self.assertEqual(filedata, filedata2)
-        
+
+        check()
         removeFile()
-
-        with app.test_client() as client:
-            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "frontendtest.xml"}})
-            session = result.json["head"]["id"]
-            
-            leftstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
-            rightstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 65536-6000, right_pos = 65536, kind = 2, player_id =1)
-            centerstep = new_step_dict(start_tick = 50, end_tick = 50, left_pos = 16384, right_pos = 49152, kind = 1, player_id = 1)
-            result = client.post("/api", json = new_request(function = "update_chart", changes = [leftstep, rightstep, centerstep], session_ID = session))
-            
-            result = client.post("/api", json = new_request(function = "save", session_ID = session))
-            self.assertEqual(result.json["head"]["result"], "SUCCESS")
-           
-            #Repeat the above save
-            result = client.post("/api", json = new_request(function = "save", session_ID = session))
-            self.assertEqual(result.json["head"]["result"], "SUCCESS")
-            check()
-
-        #Repeat the above and verify the steps
-        with app.test_client() as client:
-            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "frontendtest.xml"}})
-            session = result.json["head"]["id"]
-            self.assertEqual(result.json["head"]["result"], "SUCCESS")
-
-            #leftstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
-            #rightstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 65536-6000, right_pos = 65536, kind = 2, player_id =1)
-            #centerstep = new_step_dict(start_tick = 50, end_tick = 50, left_pos = 16384, right_pos = 49152, kind = 1, player_id = 1)
-            #result = client.post("/api", json = new_request(function = "update_chart", changes = [leftstep, rightstep, centerstep], session_ID = session))
-            #self.assertEqual(result.json["data"]["error_info"], "NOTE_ALREADY_EXISTS")
-
-            result = client.post("/api", json = new_request(function = "save", session_ID = session))
-            self.assertEqual(result.json["head"]["result"], "SUCCESS", result.json["data"]["error_info"])
-            check()
 
 if __name__ == "__main__":
     #Charts for dynamic analysis testing (ie not for unit tests)

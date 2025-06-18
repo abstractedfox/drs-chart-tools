@@ -163,6 +163,7 @@ def api():
             else:
                 current_session = _session
 
+            diff = []
             try:
                 for element in data["changes"]:
                     new_element_as_object = object_from_dict(element)
@@ -170,15 +171,14 @@ def api():
                     if new_element_as_object is None:
                         return new_response(result = apiresults["BAD_DATA"], error_info = "Could not convert dict {} to an xml wrapper class".format(element))
                     
-                    diff = []
                     result = update_chart_diff(current_session.chart_instance, new_element_as_object, remove = not element["exists"], diff = diff)
                     
-                    if result == Result.SUCCESS:
-                        return new_response(result = apiresults["SUCCESS"], diff = diff) 
-                    else:
+                    if result != Result.SUCCESS:
                         return new_response(result = apiresults["FAILED"], error_info = result.name)
             except KeyError:
                 return new_response(result = apiresults["BAD_DATA"]) 
+            
+            return new_response(result = apiresults["SUCCESS"], diff = diff) 
    
         case "get_steps":
             current_session = None

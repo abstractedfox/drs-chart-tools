@@ -640,6 +640,23 @@ class TestAPISessions(unittest.TestCase):
             self.assertEqual(result.json["head"]["result"], "SUCCESS")
             self.assertEqual(len(result.json["data"]["steps"]), 1)
 
+
+        with app.test_client() as client:
+            try: 
+                os.remove("newapi_unit_test_chart.xml")
+            except FileNotFoundError:
+                pass
+            
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "frontendtest.xml"}})
+            session = result.json["head"]["id"]
+            
+            leftstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
+            rightstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 65536-6000, right_pos = 65536, kind = 2, player_id =1)
+            centerstep = new_step_dict(start_tick = 50, end_tick = 50, left_pos = 16384, right_pos = 49152, kind = 1, player_id = 1)
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [leftstep, rightstep, centerstep], session_ID = session))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS") 
+            self.assertEqual(len(result.json["data"]["diff"]), 3)
+
             #TODO: Actually redo the rest of the tests to work like this and delete these 
 
 class MiscTests(unittest.TestCase):

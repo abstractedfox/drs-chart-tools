@@ -164,7 +164,17 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
 
         if exists is not None:
             return Result.POINT_ALREADY_EXISTS
-        chart.sequence_data.getElement(point_parent_step).long_point.append(element)
+        step_in_chart = chart.sequence_data.getElement(point_parent_step)
+        step_in_chart.long_point.append(element)
+        
+        #Ensure long_points are sorted by tick ascending
+        #This drastically simplifies rendering them in the frontend, but is also how it's done in reference charts
+        for i in range(1, len(step_in_chart.long_point)):
+            while step_in_chart.long_point[i] < step_in_chart.long_point[i-1]:
+                temp = step_in_chart.long_point[i-1]
+                step_in_chart.long_point[i-1] = step_in_chart.long_point[i]
+                step_in_chart.long_point[i] = temp 
+
         return Result.SUCCESS
 
 def update_chart_diff(chart: chartRootXML, element, remove = False, point_parent_step = None, diff = [], diff_as_dicts = True) -> Result:

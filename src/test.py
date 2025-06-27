@@ -690,12 +690,7 @@ class TestAPISessions(unittest.TestCase):
 
 
         with app.test_client() as client:
-            try: 
-                os.remove("frontendtest.xml")
-            except FileNotFoundError:
-                pass
-            
-            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "frontendtest.xml"}})
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": ""}})
             session = result.json["head"]["id"]
             
             leftstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
@@ -738,6 +733,6 @@ if __name__ == "__main__":
     generateCompleteChart()
     generateTestChart()
     generateEffectSyncTest()
-    unittest.main()
-
     make_frontend_test_chart()
+    
+    unittest.main()

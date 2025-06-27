@@ -22,7 +22,7 @@ def new_step_dict(start_tick = 0, end_tick = 0, left_pos = 0, right_pos = 0, kin
     add_dict_commons(result)
     return result
 
-def new_point_dict(tick = 0, left_pos = 0, right_pos = 0, left_end_pos = 0, right_end_pos = 0):
+def new_point_dict(tick = 0, left_pos = 0, right_pos = 0, left_end_pos = None, right_end_pos = None):
     result = {"type": "point", "tick": tick, "left_pos": left_pos, "right_pos": right_pos, "left_end_pos": left_end_pos, "right_end_pos": right_end_pos}
     add_dict_commons(result)
     return result
@@ -59,6 +59,10 @@ def object_from_dict(dictionary):
 
         case "point":
             result = pointXML(createEmptyPointXML())
+
+    if dictionary["type"] == "point" and dictionary["left_end_pos"] == None and dictionary["right_end_pos"] == None:
+        dictionary.pop("left_end_pos")
+        dictionary.pop("right_end_pos")
 
     for key in dictionary:
         if key == "long_point":

@@ -18,13 +18,11 @@ def new_measure_info_dict(tick = 0, num = 0, denomi = 0):
     return result
 
 def new_step_dict(start_tick = 0, end_tick = 0, left_pos = 0, right_pos = 0, kind = 1, player_id = 0):
-    result = {"type": "step", "start_tick": start_tick, "end_tick": end_tick, "left_pos": left_pos, "right_pos": right_pos, "kind": kind, "player_id": player_id}
-    
     result = {"type": "step", "start_tick": start_tick, "end_tick": end_tick, "left_pos": left_pos, "right_pos": right_pos, "kind": kind, "player_id": player_id, "long_point": []}
     add_dict_commons(result)
     return result
 
-def new_point_dict(tick = 0, left_pos = 0, right_pos = 0, left_end_pos = 0, right_end_pos = 0):
+def new_point_dict(tick = 0, left_pos = 0, right_pos = 0, left_end_pos = None, right_end_pos = None):
     result = {"type": "point", "tick": tick, "left_pos": left_pos, "right_pos": right_pos, "left_end_pos": left_end_pos, "right_end_pos": right_end_pos}
     add_dict_commons(result)
     return result
@@ -61,6 +59,10 @@ def object_from_dict(dictionary):
 
         case "point":
             result = pointXML(createEmptyPointXML())
+
+    if dictionary["type"] == "point" and dictionary["left_end_pos"] == None and dictionary["right_end_pos"] == None:
+        dictionary.pop("left_end_pos")
+        dictionary.pop("right_end_pos")
 
     for key in dictionary:
         if key == "long_point":

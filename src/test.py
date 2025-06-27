@@ -664,6 +664,7 @@ class TestAPINew(unittest.TestCase):
 
             result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session ))
             
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
             self.assertEqual(result.json["data"]["diff"][0]["long_point"][0]["left_end_pos"], None)
             self.assertEqual(result.json["data"]["diff"][0]["long_point"][0]["right_end_pos"], None)
 
@@ -690,7 +691,7 @@ class TestAPISessions(unittest.TestCase):
 
         with app.test_client() as client:
             try: 
-                os.remove("newapi_unit_test_chart.xml")
+                os.remove("frontendtest.xml")
             except FileNotFoundError:
                 pass
             
@@ -731,12 +732,12 @@ class MiscTests(unittest.TestCase):
                 self.assertEqual(filedata, filedata2)
 
         check()
-        removeFile()
 
 if __name__ == "__main__":
     #Charts for dynamic analysis testing (ie not for unit tests)
     generateCompleteChart()
     generateTestChart()
     generateEffectSyncTest()
-
     unittest.main()
+
+    make_frontend_test_chart()

@@ -35,19 +35,48 @@ def testXMLInterface():
     print("step 0 kind: " + sequenceTest.sequence_data[0].kind)
     print("step 0 player_id: " + sequenceTest.sequence_data[0].player_id)
 
+#TODO: verify this on reference software
 def make_frontend_test_chart():
     app.testing = True
 
-    #this does not work correctly! why do we only get the first step in the list?
     with app.test_client() as client:
         result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "frontendtest.xml"}})
         session = result.json["head"]["id"]
-        
-        leftstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
-        rightstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 65536-6000, right_pos = 65536, kind = 2, player_id =1)
+       
+        tick = 0
+
+        leftstep = new_step_dict(start_tick = tick, end_tick = tick, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
+        rightstep = new_step_dict(start_tick = tick, end_tick = tick, left_pos = 65536-6000, right_pos = 65536, kind = 2, player_id =1)
         centerstep = new_step_dict(start_tick = 50, end_tick = 50, left_pos = 16384, right_pos = 49152, kind = 1, player_id = 1)
         result = client.post("/api", json = new_request(function = "update_chart", changes = [leftstep, rightstep, centerstep], session_ID = session))
+
+        tick += 1000
+
+        moresteps = []
+
+        moresteps.append(new_step_dict(start_tick = tick, end_tick = tick, left_pos = 10000, right_pos = 60000, kind = 1, player_id = 1, long_point = [
+            new_point_dict(tick = tick, left_pos = 0, right_pos = 20000),
+            new_point_dict(tick = tick+480, left_pos = 10000, right_pos = 50000),
+            new_point_dict(tick = tick+960, left_pos = 50000, right_pos = 65535),
+        ]))
         
+        tick += 1000
+        
+        moresteps.append(new_step_dict(start_tick = tick, end_tick = tick, left_pos = 50000, right_pos = 60000, kind = 2, player_id = 1, long_point = [
+            new_point_dict(tick = tick+480, left_pos = 50000, right_pos = 60000, left_end_pos = 20000, right_end_pos = 30000),
+            new_point_dict(tick = tick+960, left_pos = 20000, right_pos = 30000, left_end_pos = 50000, right_end_pos = 60000),
+        ]))
+
+        tick += 1000
+
+        moresteps.append(new_step_dict(start_tick = tick, end_tick = tick, left_pos = 0, right_pos = 65536, kind = 3, player_id = 4))
+
+        tick += 1000
+
+        moresteps.append(new_step_dict(start_tick = tick, end_tick = tick, left_pos = 0, right_pos = 65536, kind = 4, player_id = 4))
+
+        result = client.post("/api", json = new_request(function = "update_chart", changes = moresteps, session_ID = session))
+
         result = client.post("/api", json = new_request(function = "save", session_ID = session))
 
 
@@ -624,7 +653,7 @@ class TestAPINew(unittest.TestCase):
         app.testing = True
 
         with app.test_client() as client:
-            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newapi_unit_test_chart.xml"}})
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": ""}})
             session = result.json["head"]["id"]
 
             stepdict = new_step_dict(start_tick = 100, end_tick = 200, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
@@ -635,6 +664,7 @@ class TestAPINew(unittest.TestCase):
 
             result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session ))
             
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
             self.assertEqual(result.json["data"]["diff"][0]["long_point"][0]["left_end_pos"], None)
             self.assertEqual(result.json["data"]["diff"][0]["long_point"][0]["right_end_pos"], None)
 
@@ -660,12 +690,7 @@ class TestAPISessions(unittest.TestCase):
 
 
         with app.test_client() as client:
-            try: 
-                os.remove("newapi_unit_test_chart.xml")
-            except FileNotFoundError:
-                pass
-            
-            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "frontendtest.xml"}})
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": ""}})
             session = result.json["head"]["id"]
             
             leftstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
@@ -679,14 +704,14 @@ class TestAPISessions(unittest.TestCase):
 
 class MiscTests(unittest.TestCase):
     #Tests against a bug where saving over an existing file caused it to be empty
-    def testWithFiles(self):
-        def removeFile():
+    def test_with_files(self):
+        def remove_file():
             try:
                 os.remove("frontendtest.xml")
             except FileNotFoundError:
                 pass
         
-        removeFile()
+        remove_file()
 
         #Get a known good example of what the file should look like
         filedata = None
@@ -702,12 +727,12 @@ class MiscTests(unittest.TestCase):
                 self.assertEqual(filedata, filedata2)
 
         check()
-        removeFile()
 
 if __name__ == "__main__":
     #Charts for dynamic analysis testing (ie not for unit tests)
     generateCompleteChart()
     generateTestChart()
     generateEffectSyncTest()
-
+    make_frontend_test_chart()
+    
     unittest.main()

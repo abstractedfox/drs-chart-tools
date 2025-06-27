@@ -17,8 +17,9 @@ def new_measure_info_dict(tick = 0, num = 0, denomi = 0):
     add_dict_commons(result)
     return result
 
-def new_step_dict(start_tick = 0, end_tick = 0, left_pos = 0, right_pos = 0, kind = 1, player_id = 0):
-    result = {"type": "step", "start_tick": start_tick, "end_tick": end_tick, "left_pos": left_pos, "right_pos": right_pos, "kind": kind, "player_id": player_id, "long_point": []}
+def new_step_dict(start_tick = 0, end_tick = 0, left_pos = 0, right_pos = 0, kind = 1, player_id = 0, long_point = None):
+    long_point_val = [] if long_point is None else long_point
+    result = {"type": "step", "start_tick": start_tick, "end_tick": end_tick, "left_pos": left_pos, "right_pos": right_pos, "kind": kind, "player_id": player_id, "long_point": long_point_val}
     add_dict_commons(result)
     return result
 

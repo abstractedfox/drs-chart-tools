@@ -35,19 +35,48 @@ def testXMLInterface():
     print("step 0 kind: " + sequenceTest.sequence_data[0].kind)
     print("step 0 player_id: " + sequenceTest.sequence_data[0].player_id)
 
+#TODO: verify this on reference software
 def make_frontend_test_chart():
     app.testing = True
 
-    #this does not work correctly! why do we only get the first step in the list?
     with app.test_client() as client:
         result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "frontendtest.xml"}})
         session = result.json["head"]["id"]
-        
-        leftstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
-        rightstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 65536-6000, right_pos = 65536, kind = 2, player_id =1)
+       
+        tick = 0
+
+        leftstep = new_step_dict(start_tick = tick, end_tick = tick, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
+        rightstep = new_step_dict(start_tick = tick, end_tick = tick, left_pos = 65536-6000, right_pos = 65536, kind = 2, player_id =1)
         centerstep = new_step_dict(start_tick = 50, end_tick = 50, left_pos = 16384, right_pos = 49152, kind = 1, player_id = 1)
         result = client.post("/api", json = new_request(function = "update_chart", changes = [leftstep, rightstep, centerstep], session_ID = session))
+
+        tick += 1000
+
+        moresteps = []
+
+        moresteps.append(new_step_dict(start_tick = tick, end_tick = tick, left_pos = 10000, right_pos = 60000, kind = 1, player_id = 1, long_point = [
+            new_point_dict(tick = tick, left_pos = 0, right_pos = 20000),
+            new_point_dict(tick = tick+480, left_pos = 10000, right_pos = 50000),
+            new_point_dict(tick = tick+960, left_pos = 50000, right_pos = 65535),
+        ]))
         
+        tick += 1000
+        
+        moresteps.append(new_step_dict(start_tick = tick, end_tick = tick, left_pos = 50000, right_pos = 60000, kind = 2, player_id = 1, long_point = [
+            new_point_dict(tick = tick+480, left_pos = 50000, right_pos = 60000, left_end_pos = 20000, right_end_pos = 30000),
+            new_point_dict(tick = tick+960, left_pos = 20000, right_pos = 30000, left_end_pos = 50000, right_end_pos = 60000),
+        ]))
+
+        tick += 1000
+
+        moresteps.append(new_step_dict(start_tick = tick, end_tick = tick, left_pos = 0, right_pos = 65536, kind = 3, player_id = 4))
+
+        tick += 1000
+
+        moresteps.append(new_step_dict(start_tick = tick, end_tick = tick, left_pos = 0, right_pos = 65536, kind = 4, player_id = 4))
+
+        result = client.post("/api", json = new_request(function = "update_chart", changes = moresteps, session_ID = session))
+
         result = client.post("/api", json = new_request(function = "save", session_ID = session))
 
 

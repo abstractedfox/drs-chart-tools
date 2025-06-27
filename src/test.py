@@ -653,7 +653,7 @@ class TestAPINew(unittest.TestCase):
         app.testing = True
 
         with app.test_client() as client:
-            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "newapi_unit_test_chart.xml"}})
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": ""}})
             session = result.json["head"]["id"]
 
             stepdict = new_step_dict(start_tick = 100, end_tick = 200, left_pos = 30, right_pos = 40, kind = 1, player_id =1)

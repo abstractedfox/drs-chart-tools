@@ -709,14 +709,14 @@ class TestAPISessions(unittest.TestCase):
 
 class MiscTests(unittest.TestCase):
     #Tests against a bug where saving over an existing file caused it to be empty
-    def testWithFiles(self):
-        def removeFile():
+    def test_with_files(self):
+        def remove_file():
             try:
                 os.remove("frontendtest.xml")
             except FileNotFoundError:
                 pass
         
-        removeFile()
+        remove_file()
 
         #Get a known good example of what the file should look like
         filedata = None

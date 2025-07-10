@@ -20,8 +20,6 @@ def new_measure_info_dict(tick = 0, num = 0, denomi = 0):
 
 
 def new_step_dict(start_tick = 0, end_tick = 0, left_pos = 0, right_pos = 0, kind = 1, player_id = 0):
-    result = {"type": "step", "start_tick": start_tick, "end_tick": end_tick, "left_pos": left_pos, "right_pos": right_pos, "kind": kind, "player_id": player_id}
-    
     result = {"type": "step", "start_tick": start_tick, "end_tick": end_tick, "left_pos": left_pos, "right_pos": right_pos, "kind": kind, "player_id": player_id, "long_point": []}
     add_dict_commons(result)
     return result

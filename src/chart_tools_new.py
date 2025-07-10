@@ -128,10 +128,15 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
 
         if exists is not None:
             return Result.NOTE_ALREADY_EXISTS
-
+        
+        new_end_tick = element.start_tick
+        
         for point in element.long_point:
             update_chart(chart, point, point_parent_step = element)
-        
+            new_end_tick = point.tick
+
+        #note: this append was moved from before the loop so we could calculate end_tick after long points. if there is any apparent weirdness surrounding this in the future, suspect this change
+        element.end_tick = new_end_tick
         chart.sequence_data.append(element)
         return element if return_elements else Result.SUCCESS
 

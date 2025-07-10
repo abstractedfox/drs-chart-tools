@@ -50,3 +50,5 @@ Responses look like:
         }
 }
 ```
+
+Note that step long point dicts will now contain None (python) or null (javascript) for *_end_pos parameters if they don't exist

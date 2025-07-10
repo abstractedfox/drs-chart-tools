@@ -35,6 +35,51 @@ def testXMLInterface():
     print("step 0 kind: " + sequenceTest.sequence_data[0].kind)
     print("step 0 player_id: " + sequenceTest.sequence_data[0].player_id)
 
+#TODO: verify this on reference software
+def make_frontend_test_chart():
+    app.testing = True
+
+    with app.test_client() as client:
+        result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": "frontendtest.xml"}})
+        session = result.json["head"]["id"]
+       
+        tick = 0
+
+        leftstep = new_step_dict(start_tick = tick, end_tick = tick, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
+        rightstep = new_step_dict(start_tick = tick, end_tick = tick, left_pos = 65536-6000, right_pos = 65536, kind = 2, player_id =1)
+        centerstep = new_step_dict(start_tick = 50, end_tick = 50, left_pos = 16384, right_pos = 49152, kind = 1, player_id = 1)
+        result = client.post("/api", json = new_request(function = "update_chart", changes = [leftstep, rightstep, centerstep], session_ID = session))
+
+        tick += 1000
+
+        moresteps = []
+
+        moresteps.append(new_step_dict(start_tick = tick, end_tick = tick, left_pos = 10000, right_pos = 60000, kind = 1, player_id = 1, long_point = [
+            new_point_dict(tick = tick, left_pos = 0, right_pos = 20000),
+            new_point_dict(tick = tick+480, left_pos = 10000, right_pos = 50000),
+            new_point_dict(tick = tick+960, left_pos = 50000, right_pos = 65535),
+        ]))
+        
+        tick += 1000
+        
+        moresteps.append(new_step_dict(start_tick = tick, end_tick = tick, left_pos = 50000, right_pos = 60000, kind = 2, player_id = 1, long_point = [
+            new_point_dict(tick = tick+480, left_pos = 50000, right_pos = 60000, left_end_pos = 20000, right_end_pos = 30000),
+            new_point_dict(tick = tick+960, left_pos = 20000, right_pos = 30000, left_end_pos = 50000, right_end_pos = 60000),
+        ]))
+
+        tick += 1000
+
+        moresteps.append(new_step_dict(start_tick = tick, end_tick = tick, left_pos = 0, right_pos = 65536, kind = 3, player_id = 4))
+
+        tick += 1000
+
+        moresteps.append(new_step_dict(start_tick = tick, end_tick = tick, left_pos = 0, right_pos = 65536, kind = 4, player_id = 4))
+
+        result = client.post("/api", json = new_request(function = "update_chart", changes = moresteps, session_ID = session))
+
+        result = client.post("/api", json = new_request(function = "save", session_ID = session))
+
+
 #Generate a chart with 92 beats of left foot steps on every beat, alternating back and forth in position, starting at the 8th beat
 def makeDummyChart():
     testChart = Chart(endTick = beatsToTicks(120, 480))
@@ -604,6 +649,28 @@ class TestAPINew(unittest.TestCase):
                 file.seek(0)
                 self.assertEqual(file.read(), result.json["data"]["raw_chart"])
 
+
+    #Verify that long points do not generate with *_end_points when those fields were left uninitialized
+    def test_long_point_fix(self):
+        app.testing = True
+
+        with app.test_client() as client:
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": ""}})
+            session = result.json["head"]["id"]
+
+            stepdict = new_step_dict(start_tick = 100, end_tick = 200, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+            pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30)
+            pointdict2 = new_point_dict(tick = 100, left_pos = 20, right_pos = 30)
+            stepdict["long_point"].append(pointdict)
+            stepdict["long_point"].append(pointdict2)
+
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session ))
+            
+            self.assertEqual(result.json["head"]["result"], "SUCCESS")
+            self.assertEqual(result.json["data"]["diff"][0]["long_point"][0]["left_end_pos"], None)
+            self.assertEqual(result.json["data"]["diff"][0]["long_point"][0]["right_end_pos"], None)
+
+
 class TestAPISessions(unittest.TestCase):
     def test_session_ID(self):
         app.testing = True
@@ -624,12 +691,51 @@ class TestAPISessions(unittest.TestCase):
             self.assertEqual(result.json["head"]["result"], "SUCCESS")
             self.assertEqual(len(result.json["data"]["steps"]), 1)
 
+
+        with app.test_client() as client:
+            result = client.post("/api", json={"head": {"function": "init"}, "data": {"filename": ""}})
+            session = result.json["head"]["id"]
+            
+            leftstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 0, right_pos = 6000, kind = 1, player_id =1)
+            rightstep = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 65536-6000, right_pos = 65536, kind = 2, player_id =1)
+            centerstep = new_step_dict(start_tick = 50, end_tick = 50, left_pos = 16384, right_pos = 49152, kind = 1, player_id = 1)
+            result = client.post("/api", json = new_request(function = "update_chart", changes = [leftstep, rightstep, centerstep], session_ID = session))
+            self.assertEqual(result.json["head"]["result"], "SUCCESS") 
+            self.assertEqual(len(result.json["data"]["diff"]), 3)
+
             #TODO: Actually redo the rest of the tests to work like this and delete these 
+
+class MiscTests(unittest.TestCase):
+    #Tests against a bug where saving over an existing file caused it to be empty
+    def test_with_files(self):
+        def remove_file():
+            try:
+                os.remove("frontendtest.xml")
+            except FileNotFoundError:
+                pass
+        
+        remove_file()
+
+        #Get a known good example of what the file should look like
+        filedata = None
+        make_frontend_test_chart()
+        with open("frontendtest.xml", "r") as file:
+            filedata = file.read()
+            self.assertTrue(len(filedata) > 0)
+
+        def check():
+            with open("frontendtest.xml", "r") as file:
+                filedata2 = file.read()
+                self.assertTrue(len(filedata2) > 0)
+                self.assertEqual(filedata, filedata2)
+
+        check()
 
 if __name__ == "__main__":
     #Charts for dynamic analysis testing (ie not for unit tests)
     generateCompleteChart()
     generateTestChart()
     generateEffectSyncTest()
-
+    make_frontend_test_chart()
+    
     unittest.main()

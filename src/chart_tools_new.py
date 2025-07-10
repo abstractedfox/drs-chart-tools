@@ -19,13 +19,14 @@ def new_measure_info_dict(tick = 0, num = 0, denomi = 0):
     return result
 
 
-def new_step_dict(start_tick = 0, end_tick = 0, left_pos = 0, right_pos = 0, kind = 1, player_id = 0):
-    result = {"type": "step", "start_tick": start_tick, "end_tick": end_tick, "left_pos": left_pos, "right_pos": right_pos, "kind": kind, "player_id": player_id, "long_point": []}
+def new_step_dict(start_tick = 0, end_tick = 0, left_pos = 0, right_pos = 0, kind = 1, player_id = 0, long_point = None):
+    long_point_val = [] if long_point is None else long_point
+    result = {"type": "step", "start_tick": start_tick, "end_tick": end_tick, "left_pos": left_pos, "right_pos": right_pos, "kind": kind, "player_id": player_id, "long_point": long_point_val}
     add_dict_commons(result)
     return result
 
 
-def new_point_dict(tick = 0, left_pos = 0, right_pos = 0, left_end_pos = 0, right_end_pos = 0):
+def new_point_dict(tick = 0, left_pos = 0, right_pos = 0, left_end_pos = None, right_end_pos = None):
     result = {"type": "point", "tick": tick, "left_pos": left_pos, "right_pos": right_pos, "left_end_pos": left_end_pos, "right_end_pos": right_end_pos}
     add_dict_commons(result)
     return result
@@ -64,6 +65,10 @@ def object_from_dict(dictionary):
 
         case "point":
             result = pointXML(createEmptyPointXML())
+
+    if dictionary["type"] == "point" and dictionary["left_end_pos"] == None and dictionary["right_end_pos"] == None:
+        dictionary.pop("left_end_pos")
+        dictionary.pop("right_end_pos")
 
     for key in dictionary:
         if key == "long_point":
@@ -176,8 +181,18 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
 
         if exists is not None:
             return Result.POINT_ALREADY_EXISTS
+
+        step_in_chart = chart.sequence_data.getElement(point_parent_step)
+        step_in_chart.long_point.append(element)
         
-        chart.sequence_data.getElement(point_parent_step).long_point.append(element)
+        #Ensure long_points are sorted by tick ascending
+        #This drastically simplifies rendering them in the frontend, but is also how it's done in reference charts
+        for i in range(1, len(step_in_chart.long_point)):
+            while step_in_chart.long_point[i] < step_in_chart.long_point[i-1]:
+                temp = step_in_chart.long_point[i-1]
+                step_in_chart.long_point[i-1] = step_in_chart.long_point[i]
+                step_in_chart.long_point[i] = temp 
+
         return element if return_elements else Result.SUCCESS
 
 

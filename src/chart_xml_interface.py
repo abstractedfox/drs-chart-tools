@@ -1,3 +1,4 @@
+import sys 
 import xml.etree.ElementTree
 from common import *
 
@@ -467,7 +468,8 @@ class chartRootXML:
         
         try:
             elementTree.write(path, 'UTF-8')
-        except:
+        except Exception as e:
+            print("Exception raised while attempting to save file: ", e, file = sys.stderr)
             return Result.FILE_WRITE_ERROR
         
         return Result.SUCCESS

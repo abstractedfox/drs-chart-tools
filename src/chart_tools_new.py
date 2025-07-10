@@ -12,10 +12,12 @@ def new_bpm_info_dict(tick = 0, bpm = 0):
     add_dict_commons(result)
     return result
 
+
 def new_measure_info_dict(tick = 0, num = 0, denomi = 0):
     result = {"type": "measure_info", "tick": tick, "num": num, "denomi": denomi}
     add_dict_commons(result)
     return result
+
 
 def new_step_dict(start_tick = 0, end_tick = 0, left_pos = 0, right_pos = 0, kind = 1, player_id = 0):
     result = {"type": "step", "start_tick": start_tick, "end_tick": end_tick, "left_pos": left_pos, "right_pos": right_pos, "kind": kind, "player_id": player_id}
@@ -24,15 +26,18 @@ def new_step_dict(start_tick = 0, end_tick = 0, left_pos = 0, right_pos = 0, kin
     add_dict_commons(result)
     return result
 
+
 def new_point_dict(tick = 0, left_pos = 0, right_pos = 0, left_end_pos = 0, right_end_pos = 0):
     result = {"type": "point", "tick": tick, "left_pos": left_pos, "right_pos": right_pos, "left_end_pos": left_end_pos, "right_end_pos": right_end_pos}
     add_dict_commons(result)
     return result
 
+
 def new_extend_dict(type_tag = "Vfx", tick = 0, time = 0, kind = "", layer_name = "", id_tag = 0, lane = 0, speed = 0, r = 0, g = 0, b = 0):
     result = {"type": type_tag, "tick": tick, "time": time, "kind": kind, "layer_name": layer_name, "id": id_tag, "lane": lane, "speed": speed, "r": r, "g": g, "b": b}
     add_dict_commons(result)
     return result
+
 
 #Prevent accidentally adding a key to a dict 
 class verifydict:
@@ -76,6 +81,7 @@ def object_from_dict(dictionary):
     
     return result
 
+
 #For a given chart element represented as a wrapper class instance, receive it as an appropriate dict
 def dict_from_object(classinstance):
     class dummy:
@@ -103,9 +109,9 @@ def dict_from_object(classinstance):
                 result["long_point"].append(dict_from_object(point))
         else:
             verifydict(result)[key] = getattr(classinstance, key)
-    
 
     return result
+
 
 def new_chart() -> chartRootXML:
     return chartRootXML(createEmptyChartXML())
@@ -137,6 +143,7 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
 
         if exists is not None:
             return Result.MEASURE_ALREADY_EXISTS
+        
         chart.info.measure_info.append(element)
         return element if return_elements else Result.SUCCESS
     
@@ -148,6 +155,7 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
 
         if exists is not None:
             return Result.BPM_ALREADY_EXISTS
+        
         chart.info.bpm_info.append(element)
         return element if return_elements else Result.SUCCESS
 
@@ -165,8 +173,10 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
 
         if exists is not None:
             return Result.POINT_ALREADY_EXISTS
+        
         chart.sequence_data.getElement(point_parent_step).long_point.append(element)
         return element if return_elements else Result.SUCCESS
+
 
 def update_chart_diff(chart: chartRootXML, element, remove = False, point_parent_step = None, diff = [], diff_as_dicts = True) -> Result:
     result = update_chart(chart, element, remove = remove, point_parent_step = point_parent_step, return_elements = True)
@@ -184,6 +194,7 @@ def update_chart_diff(chart: chartRootXML, element, remove = False, point_parent
             diff.append({element, remove})
     
     return result
+
 
 def save_chart(chart: chartRootXML, filename: str) -> Result:
     chart.info.end_tick = 0

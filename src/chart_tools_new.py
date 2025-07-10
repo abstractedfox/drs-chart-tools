@@ -113,7 +113,7 @@ def new_chart() -> chartRootXML:
 
 #Where 'element' is a bpm, measure, step, or point.
 #Element is added to the chart by default or removed from the chart (if it exists) if remove == True
-def update_chart(chart: chartRootXML, element, remove = False, point_parent_step = None) -> Result:
+def update_chart(chart: chartRootXML, element, remove = False, point_parent_step = None, return_elements = False) -> Result:
     if type(element) == stepXML:
         if remove:
             return chart.sequence_data.remove(element)
@@ -122,11 +122,12 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
 
         if exists is not None:
             return Result.NOTE_ALREADY_EXISTS
-        chart.sequence_data.append(element)
 
         for point in element.long_point:
             update_chart(chart, point, point_parent_step = element)
-        return Result.SUCCESS
+        
+        chart.sequence_data.append(element)
+        return element if return_elements else Result.SUCCESS
 
     if type(element) == measureXML:
         if remove:
@@ -137,7 +138,7 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
         if exists is not None:
             return Result.MEASURE_ALREADY_EXISTS
         chart.info.measure_info.append(element)
-        return Result.SUCCESS
+        return element if return_elements else Result.SUCCESS
     
     if type(element) == bpmXML:
         if remove:
@@ -148,7 +149,7 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
         if exists is not None:
             return Result.BPM_ALREADY_EXISTS
         chart.info.bpm_info.append(element)
-        return Result.SUCCESS
+        return element if return_elements else Result.SUCCESS
 
     if type(element) == pointXML: 
         if point_parent_step is None:

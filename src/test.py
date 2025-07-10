@@ -558,10 +558,11 @@ class TestAPINew(unittest.TestCase):
             
             #Add a step with points
             stepdict = new_step_dict(start_tick = 100, end_tick = 200, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
-            pointdict = new_point_dict(tick = 10, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
-            pointdict2 = new_point_dict(tick = 100, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+            pointdict = new_point_dict(tick = 150, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
+            pointdict2 = new_point_dict(tick = 200, left_pos = 20, right_pos = 30, left_end_pos = 40, right_end_pos = 50)
             stepdict["long_point"].append(pointdict)
             stepdict["long_point"].append(pointdict2)
+            stepdict["end_tick"] = 200 #since end_tick is set automatically, we have to account for the end_tick being set properly
 
             result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session1  ))
             self.assertEqual(result.json["head"]["result"], "SUCCESS")
@@ -648,6 +649,7 @@ class TestAPINew(unittest.TestCase):
                 file.seek(0)
                 self.assertEqual(file.read(), result.json["data"]["raw_chart"])
 
+
     #Verify that long points do not generate with *_end_points when those fields were left uninitialized
     def test_long_point_fix(self):
         app.testing = True
@@ -667,6 +669,7 @@ class TestAPINew(unittest.TestCase):
             self.assertEqual(result.json["head"]["result"], "SUCCESS")
             self.assertEqual(result.json["data"]["diff"][0]["long_point"][0]["left_end_pos"], None)
             self.assertEqual(result.json["data"]["diff"][0]["long_point"][0]["right_end_pos"], None)
+
 
 class TestAPISessions(unittest.TestCase):
     def test_session_ID(self):

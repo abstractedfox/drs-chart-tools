@@ -81,7 +81,12 @@ class IXMLCollection:
         return None
 
 
-class bpmXML:
+#To be used on classes where we'd like to be able to use isinstance() to detect any of the tag implementations
+class baseXML:
+    pass
+
+
+class bpmXML(baseXML):
     def __init__(self, bpmTag: xml.etree.ElementTree.Element):
         self.innerElement = bpmTag
 
@@ -103,7 +108,7 @@ class bpmXML:
         self.innerElement.find("bpm").text = str(value)
 
 
-class measureXML:
+class measureXML(baseXML):
     def __init__(self, measureTag: xml.etree.ElementTree.Element):
         self.innerElement = measureTag
 
@@ -133,7 +138,7 @@ class measureXML:
 
 
 #The <info> tag, ie the chart header
-class chartInfo:
+class chartInfo(baseXML):
     def __init__(self, chartRoot: xml.etree.ElementTree.Element):
         self.innerElement = chartRoot.find("info")
 
@@ -160,7 +165,7 @@ class chartInfo:
         return measureInfoXML(self.innerElement.find("measure_info"))
 
 #used inside <long_point>s
-class pointXML:
+class pointXML(baseXML):
     def __init__(self, pointTag: xml.etree.ElementTree.Element):
         self.innerElement = pointTag
 
@@ -215,7 +220,7 @@ class pointXML:
         self.innerElement.find("right_end_pos").text = str(value)
 
 
-class stepXML:
+class stepXML(baseXML):
     def __init__(self, stepTag: xml.etree.ElementTree.Element):
         self.innerElement = stepTag
 

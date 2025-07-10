@@ -113,7 +113,7 @@ def new_chart() -> chartRootXML:
 
 #Where 'element' is a bpm, measure, step, or point.
 #Element is added to the chart by default or removed from the chart (if it exists) if remove == True
-def update_chart(chart: chartRootXML, element, remove = False, point_parent_step = None, return_elements = False) -> Result:
+def update_chart(chart: chartRootXML, element, remove = False, point_parent_step = None, return_elements = False) -> Optional[Union[Result|baseXML]]:
     if type(element) == stepXML:
         if remove:
             return chart.sequence_data.remove(element)
@@ -166,17 +166,23 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
         if exists is not None:
             return Result.POINT_ALREADY_EXISTS
         chart.sequence_data.getElement(point_parent_step).long_point.append(element)
-        return Result.SUCCESS
+        return element if return_elements else Result.SUCCESS
 
 def update_chart_diff(chart: chartRootXML, element, remove = False, point_parent_step = None, diff = [], diff_as_dicts = True) -> Result:
-    result = update_chart(chart, element, remove = remove, point_parent_step = point_parent_step)
+    result = update_chart(chart, element, remove = remove, point_parent_step = point_parent_step, return_elements = True)
+    
+    #When the return_elements arg is True, update_chart returns the actual element that was added to indicate success
+    if isinstance(result, baseXML):
+        element = result
+        result = Result.SUCCESS
+
     if result == Result.SUCCESS:
         if diff_as_dicts: 
             diff.append(dict_from_object(element))
             diff[-1]["exists"] = not remove
         else:
             diff.append({element, remove})
-
+    
     return result
 
 def save_chart(chart: chartRootXML, filename: str) -> Result:

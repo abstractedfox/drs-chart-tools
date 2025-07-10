@@ -132,7 +132,7 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
         if exists is not None:
             return Result.NOTE_ALREADY_EXISTS
         
-        new_end_tick = element.end_tick
+        new_end_tick = element.start_tick #the only time start_tick isn't identical to end_tick is when there are long_points
         
         for point in element.long_point:
             update_chart(chart, point, point_parent_step = element)

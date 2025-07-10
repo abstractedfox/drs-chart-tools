@@ -539,7 +539,7 @@ class TestAPINew(unittest.TestCase):
             session1 = result.json["head"]["id"]
 
             #Add a step
-            stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+            stepdict = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
             result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session1))
             self.assertEqual(result.json["head"]["result"], "SUCCESS")
             self.assertEqual(result.json["data"]["diff"][0], stepdict)
@@ -593,7 +593,7 @@ class TestAPINew(unittest.TestCase):
             #Verify that we can't use a dead session
             result = client.post("/api", json = new_request(function = "close_session", session_ID = session1 ))
             self.assertEqual(result.json["head"]["result"], "INVALID_SESSION")
-            stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+            stepdict = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
             result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session1))
             self.assertEqual(result.json["head"]["result"], "INVALID_SESSION")
 
@@ -682,7 +682,7 @@ class TestAPISessions(unittest.TestCase):
 
             session_ID = result.json["head"]["id"]
 
-            stepdict = new_step_dict(start_tick = 10, end_tick = 20, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
+            stepdict = new_step_dict(start_tick = 10, end_tick = 10, left_pos = 30, right_pos = 40, kind = 1, player_id =1)
             result = client.post("/api", json = new_request(function = "update_chart", changes = [stepdict], session_ID = session_ID))
             self.assertEqual(result.json["head"]["result"], "SUCCESS")
             self.assertEqual(result.json["data"]["diff"][0], stepdict)

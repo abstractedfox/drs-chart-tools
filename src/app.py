@@ -103,8 +103,11 @@ def new_request(function = "", data = {}, changes = [], filename = None, session
 def api():
     global _session
     global _sessions
+    superdebug = False 
 
-    #log("Received request: {}".format(request.json))
+    if superdebug:
+        log("Received request: {}".format(request.json))
+    
     if "head" not in request.json:
         response = new_response()
         verifydict(response["head"])["result"] = apiresults["BAD_REQUEST"] 

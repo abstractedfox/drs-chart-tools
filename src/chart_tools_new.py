@@ -53,6 +53,10 @@ class verifydict:
 #For a given chart element represented as a dict, receive it as an appropriate wrapper class instance from chart_xml_interface
 def object_from_dict(dictionary):
     result = None
+    
+    if type(dictionary) != dict:
+        raise TypeError("Needed dict, not {}".format(dictionary))
+
     match dictionary["type"]:
         case "bpm_info":
             result = bpmXML(createEmptyBPMXML())

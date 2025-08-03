@@ -25,7 +25,7 @@ apiresults = {
     "INVALID_SESSION": "INVALID_SESSION",
 }
 
-def new_response(result = apiresults["UNDEFINED"], error_info = None, diff = [], steps = [], bpms = [], measures = [], session_ID = None, raw_chart = None):
+def new_response(result = apiresults["UNDEFINED"], error_info = None, diff: list = None, steps: list = None, bpms: list = None, measures: list = None, session_ID = None, raw_chart = None):
     response = {"head": {"result": result}, "data": {}}
     if result not in apiresults:
         raise NameError("\"{}\" not found in apiresults.".format(result))
@@ -62,8 +62,9 @@ def new_response(result = apiresults["UNDEFINED"], error_info = None, diff = [],
     return response 
 
 #Request reference, also useful for testing
-def new_request(function = "", data = {}, changes = [], filename = None, session_ID = None, raw_chart = None):
-    request = {"head": {"function": function}, "data": data}
+def new_request(function = "", data: dict = None, changes: list = None, filename = None, session_ID = None, raw_chart = None):
+    data = {} if data == None else data
+    request = {"head": {"function": function}, "data": data }
 
     #implementations shouldn't make this optional
     if session_ID:

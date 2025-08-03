@@ -748,12 +748,12 @@ class TestV3(unittest.TestCase):
                 
                 self.assertEqual(result.json["head"]["result"], "SUCCESS")
                 self.assertEqual(len(steps), 92) #there are 92 steps in this test chart
-                self.assertTrue(len(bpms) > 0)
-                self.assertTrue(len(measures) > 0)
+                self.assertEqual(len(bpms), 1)
+                self.assertEqual(len(measures), 1)
 
                 result = client.post("/api", json = new_request(function = "process_to_xml", changes = steps + bpms + measures))
                 self.assertEqual(result.json["head"]["result"], "SUCCESS")
-                self.assertEqual(result.json["data"]["raw_chart"], chartdata) 
+                self.assertEqual(result.json["data"]["raw_chart"], chartdata, "The reprocessed chart should be identical to the chart on disk")
 
 
 if __name__ == "__main__":

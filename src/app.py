@@ -250,4 +250,26 @@ def api():
                 return new_response(result = apiresults["FALSE"])
             return new_response(result = apiresults["TRUE"])
 
+        #parse a chart from file and return it as json dicts
+        case "parse_chart":
+            if "raw_chart" in data:
+                with open(data["filename"], "w") as newchart:
+                    newchart.write(data["raw_chart"])
+           
+            chartxml = load_from_file(data["filename"])
+
+            steps = []
+            for element in chartxml.sequence_data:
+                steps.append(dict_from_object(element))
+           
+            bpms = []
+            for element in chartxml.info.bpm_info:
+                bpms.append(dict_from_object(element))
+
+            measures = []
+            for element in chartxml.info.measure_info:
+                measures.append(dict_from_object(element))
+            
+            return new_response(result = apiresults["SUCCESS"], steps = steps, bpms = bpms, measures = measures)
+
     return new_response(result = apiresults["INVALID_FUNCTION"], error_info = head["function"])

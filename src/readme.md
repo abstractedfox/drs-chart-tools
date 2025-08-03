@@ -38,7 +38,7 @@ Responses look like:
     "head": 
         {
             "result": /*always*/ "status of the operation",
-            [DEPRECATED AS OF V3]] "id": /*always*/ "id of the session affected"
+            [DEPRECATED AS OF V3] "id": /*always*/ "id of the session affected"
         },
     "data":
         {
@@ -46,14 +46,14 @@ Responses look like:
             "steps": /*sometimes, steps returned after a call to get_steps*/,
             "bpms": /*sometimes, bpms returned after a call to get_bpms*/,
             "measures": /*sometimes*/,
-            "diff": /*sometimes, the diff after an operation that modifies the chart*/
+            [DEPRECATED AS OF V3] "diff": /*sometimes, the diff after an operation that modifies the chart*/
         }
 }
 ```
 
 Dicts representing chart elements contain all the relevant fields as in the original XML by the same name (impl. note: do not change this) but also include a "type" field indicating what kind of element they are (ie a bpm dict has type "bpm_info", step dict has type "step", measure dict has type "measure_info") 
 
-Note that step long point dicts will now contain None (python) or null (javascript) for *_end_pos parameters if they don't exist
+Note that step long point dicts contain None (python) or null (javascript) for *_end_pos parameters if they don't exist
 
 Usage pattern (V3):
 V3 is even more stateless™, which actually makes it a lot simpler to use!

@@ -731,6 +731,31 @@ class MiscTests(unittest.TestCase):
 
         check()
 
+class TestV3(unittest.TestCase):
+    def test_parse_chart(self):
+        generateTestChart()
+        app.testing = True
+        
+        with open("testchart1.xml") as file:
+            with app.test_client() as client:
+                chartdata = file.read()
+    
+                result = client.post("/api", json = new_request(function = "parse_chart", filename = "tempfile.xml", raw_chart = chartdata))
+
+                steps = result.json["data"]["steps"]
+                bpms = result.json["data"]["bpms"]
+                measures = result.json["data"]["measures"]
+                
+                self.assertEqual(result.json["head"]["result"], "SUCCESS")
+                self.assertEqual(len(steps), 92) #there are 92 steps in this test chart
+                self.assertEqual(len(bpms), 1)
+                self.assertEqual(len(measures), 1)
+
+                result = client.post("/api", json = new_request(function = "process_to_xml", changes = steps + bpms + measures))
+                self.assertEqual(result.json["head"]["result"], "SUCCESS")
+                self.assertEqual(result.json["data"]["raw_chart"], chartdata, "The reprocessed chart should be identical to the chart on disk")
+
+
 if __name__ == "__main__":
     #Charts for dynamic analysis testing (ie not for unit tests)
     generateCompleteChart()

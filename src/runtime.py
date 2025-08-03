@@ -28,4 +28,4 @@ class Session:
     def save(self):
         return save_chart(self.chart_instance, self.path) 
 
-    
+ChartInstance = Session 

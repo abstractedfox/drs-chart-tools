@@ -1,5 +1,6 @@
 from warnings import warn
 
+from common import *
 from runtime import *
 
 from flask import Flask, jsonify, request
@@ -25,7 +26,7 @@ apiresults = {
     "INVALID_SESSION": "INVALID_SESSION",
 }
 
-def new_response(result = apiresults["UNDEFINED"], error_info = None, diff = [], steps = [], bpms = [], measures = [], session_ID = None, raw_chart = None):
+def new_response(result = apiresults["UNDEFINED"], error_info = None, diff: list = None, steps: list = None, bpms: list = None, measures: list = None, session_ID = None, raw_chart = None):
     response = {"head": {"result": result}, "data": {}}
     if result not in apiresults:
         raise NameError("\"{}\" not found in apiresults.".format(result))
@@ -62,8 +63,9 @@ def new_response(result = apiresults["UNDEFINED"], error_info = None, diff = [],
     return response 
 
 #Request reference, also useful for testing
-def new_request(function = "", data = {}, changes = [], filename = None, session_ID = None, raw_chart = None):
-    request = {"head": {"function": function}, "data": data}
+def new_request(function = "", data: dict = None, changes: list = None, filename = None, session_ID = None, raw_chart = None):
+    data = {} if data == None else data
+    request = {"head": {"function": function}, "data": data }
 
     #implementations shouldn't make this optional
     if session_ID:
@@ -95,6 +97,18 @@ def new_request(function = "", data = {}, changes = [], filename = None, session
 
         case "introspect_has_session":
             pass
+
+        case "parse_chart":
+            data["raw_chart"] = raw_chart
+
+        case "process_to_xml":
+            data["changes"] = changes
+
+        case "get_raw_chart":
+            pass
+
+        case _:
+            raise NotImplementedError("Function {} not implemented in new_request".format(function))
 
     return request
 
@@ -249,5 +263,43 @@ def api():
             if _session is None and len(_sessions) == 0:
                 return new_response(result = apiresults["FALSE"])
             return new_response(result = apiresults["TRUE"])
+
+        #parse a chart from file and return it as json dicts
+        case "parse_chart":
+            if "raw_chart" in data:
+                with open(TEMPFILE_XML, "w") as newchart:
+                    newchart.write(data["raw_chart"])
+                
+           
+            chart = ChartInstance(TEMPFILE_XML)
+
+            steps = []
+            for element in chart.chart_instance.sequence_data:
+                steps.append(dict_from_object(element))
+           
+            bpms = []
+            for element in chart.chart_instance.info.bpm_info:
+                bpms.append(dict_from_object(element))
+
+            measures = []
+            for element in chart.chart_instance.info.measure_info:
+                measures.append(dict_from_object(element))
+            
+            return new_response(result = apiresults["SUCCESS"], steps = steps, bpms = bpms, measures = measures)
+
+        #process a full chart from dicts to xml. expects to find all dicts in 'changes', returns chart in 'raw_chart'
+        case "process_to_xml":
+            chartxml = ChartInstance(TEMPFILE_XML)
+            for element in data["changes"]:
+                new_element_as_object = object_from_dict(element)
+                
+                if new_element_as_object is None:
+                    return new_response(result = apiresults["BAD_DATA"], error_info = "Could not convert dict {} to an xml wrapper class".format(element))
+                
+                update_chart(chartxml.chart_instance, new_element_as_object, remove = False)
+                
+            chartxml.save()
+            with open(TEMPFILE_XML) as file:
+                return new_response(result = apiresults["SUCCESS"], raw_chart = file.read())
 
     return new_response(result = apiresults["INVALID_FUNCTION"], error_info = head["function"])

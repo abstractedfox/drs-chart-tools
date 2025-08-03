@@ -26,8 +26,8 @@ Requests should be JSON objects that look like:
         },
     "data":
         {
-            "filename": /*only when calling init*/ "filename (or path) to be used on initialization"
-            "changes": /*only when calling update_chart*/ "chart elements as json objects"
+            [DEPRECATED AS OF V3] "filename": /*only when calling init*/ "filename (or path) to be used on initialization"
+            "changes": /*only when calling update_chart (pre V3) or process_to_xml (V3) */ "chart elements as json objects"
         }
 }
 ```

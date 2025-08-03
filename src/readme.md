@@ -21,8 +21,8 @@ Requests should be JSON objects that look like:
     "head": 
         {
             "function": /*mandatory*/ "name of function",
-                /*possible values: init, save, close_session, update_chart, get_steps, get_bpms, get_measures, introspect_has_session*/
-            "id": /*mandatory, except when calling 'init'*/ "session ID",
+                /*possible values: init, save, close_session, update_chart, get_steps, get_bpms, get_measures, introspect_has_session, parse_chart*/
+            [[DEPRECATED AS OF V3]] "id": /*mandatory, except when calling 'init'*/ "session ID",
         },
     "data":
         {
@@ -50,5 +50,7 @@ Responses look like:
         }
 }
 ```
+
+Dicts representing chart elements contain all the relevant fields as in the original XML by the same name (impl. note: do not change this) but also include a "type" field indicating what kind of element they are (ie a bpm dict has type "bpm_info", step dict has type "step", measure dict has type "measure_info") 
 
 Note that step long point dicts will now contain None (python) or null (javascript) for *_end_pos parameters if they don't exist

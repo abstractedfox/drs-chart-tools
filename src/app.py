@@ -96,6 +96,18 @@ def new_request(function = "", data = {}, changes = [], filename = None, session
         case "introspect_has_session":
             pass
 
+        case "parse_chart":
+            data["raw_chart"] = raw_chart
+
+        case "process_to_xml":
+            data["changes"] = changes
+
+        case "get_raw_chart":
+            pass
+
+        case _:
+            raise NotImplementedError("Function {} not implemented in new_request".format(function))
+
     return request
 
 #TODO: Once tests are changed to reflect the change to multiple sessions, get rid of _session and clean up any code that handles switching _session and _sessions
@@ -255,6 +267,7 @@ def api():
             if "raw_chart" in data:
                 with open(data["filename"], "w") as newchart:
                     newchart.write(data["raw_chart"])
+                
            
             chart = ChartInstance(data["filename"])
 

@@ -285,4 +285,23 @@ def api():
             
             return new_response(result = apiresults["SUCCESS"], steps = steps, bpms = bpms, measures = measures)
 
+        #process a full chart from dicts to xml. expects to find all dicts in 'changes', returns chart in 'raw_chart'
+        case "process_to_xml":
+            chartxml = ChartInstance("tempfile.xml")
+            for element in data["changes"]:
+                new_element_as_object = object_from_dict(element)
+                
+                if new_element_as_object is None:
+                    return new_response(result = apiresults["BAD_DATA"], error_info = "Could not convert dict {} to an xml wrapper class".format(element))
+                if element["type"] != "step":
+                    print("we got one!!", element, new_element_as_object)
+                else:
+                    print("steppy")
+                
+                update_chart(chartxml.chart_instance, new_element_as_object, remove = False)
+                
+            chartxml.save()
+            with open("tempfile.xml") as file:
+                return new_response(result = apiresults["SUCCESS"], raw_chart = file.read())
+
     return new_response(result = apiresults["INVALID_FUNCTION"], error_info = head["function"])

@@ -295,10 +295,6 @@ def api():
                 
                 if new_element_as_object is None:
                     return new_response(result = apiresults["BAD_DATA"], error_info = "Could not convert dict {} to an xml wrapper class".format(element))
-                if element["type"] != "step":
-                    print("we got one!!", element, new_element_as_object)
-                else:
-                    print("steppy")
                 
                 update_chart(chartxml.chart_instance, new_element_as_object, remove = False)
                 

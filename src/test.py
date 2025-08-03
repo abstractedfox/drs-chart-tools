@@ -739,12 +739,21 @@ class TestV3(unittest.TestCase):
         with open("testchart1.xml") as file:
             with app.test_client() as client:
                 chartdata = file.read()
-
+    
                 result = client.post("/api", json = new_request(function = "parse_chart", filename = "tempfile.xml", raw_chart = chartdata))
 
-                self.assertTrue(len(result.json["data"]["steps"]) > 0)
-                self.assertTrue(len(result.json["data"]["bpms"]) > 0)
-                self.assertTrue(len(result.json["data"]["measures"]) > 0)
+                steps = result.json["data"]["steps"]
+                bpms = result.json["data"]["bpms"]
+                measures = result.json["data"]["measures"]
+                
+                self.assertEqual(result.json["head"]["result"], "SUCCESS")
+                self.assertEqual(len(steps), 92) #there are 92 steps in this test chart
+                self.assertTrue(len(bpms) > 0)
+                self.assertTrue(len(measures) > 0)
+
+                result = client.post("/api", json = new_request(function = "process_to_xml", changes = steps + bpms + measures))
+                self.assertEqual(result.json["head"]["result"], "SUCCESS")
+                self.assertEqual(result.json["data"]["raw_chart"], chartdata) 
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ Requests should be JSON objects that look like:
         {
             "function": /*mandatory*/ "name of function",
                 /*possible values: init, save, close_session, update_chart, get_steps, get_bpms, get_measures, introspect_has_session, parse_chart*/
-            [[DEPRECATED AS OF V3]] "id": /*mandatory, except when calling 'init'*/ "session ID",
+            [DEPRECATED AS OF V3] "id": /*mandatory, except when calling 'init'*/ "session ID",
         },
     "data":
         {
@@ -38,7 +38,7 @@ Responses look like:
     "head": 
         {
             "result": /*always*/ "status of the operation",
-            "id": /*always*/ "id of the session affected"
+            [DEPRECATED AS OF V3]] "id": /*always*/ "id of the session affected"
         },
     "data":
         {
@@ -54,3 +54,9 @@ Responses look like:
 Dicts representing chart elements contain all the relevant fields as in the original XML by the same name (impl. note: do not change this) but also include a "type" field indicating what kind of element they are (ie a bpm dict has type "bpm_info", step dict has type "step", measure dict has type "measure_info") 
 
 Note that step long point dicts will now contain None (python) or null (javascript) for *_end_pos parameters if they don't exist
+
+Usage pattern (V3):
+V3 is even more stateless™, which actually makes it a lot simpler to use!
+* `parse_chart` accepts an XML chart, as text, in `data["raw_chart"]`, and returns the entire chart as dicts in `data["steps"]`, `data["bpms"]`, and `data["measures"]`
+* `process_to_xml` accepts dicts in data["changes"] and returns the chart as XML
+

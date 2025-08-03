@@ -1,5 +1,6 @@
 from warnings import warn
 
+from common import *
 from runtime import *
 
 from flask import Flask, jsonify, request
@@ -266,11 +267,11 @@ def api():
         #parse a chart from file and return it as json dicts
         case "parse_chart":
             if "raw_chart" in data:
-                with open(data["filename"], "w") as newchart:
+                with open(TEMPFILE_XML, "w") as newchart:
                     newchart.write(data["raw_chart"])
                 
            
-            chart = ChartInstance(data["filename"])
+            chart = ChartInstance(TEMPFILE_XML)
 
             steps = []
             for element in chart.chart_instance.sequence_data:
@@ -288,7 +289,7 @@ def api():
 
         #process a full chart from dicts to xml. expects to find all dicts in 'changes', returns chart in 'raw_chart'
         case "process_to_xml":
-            chartxml = ChartInstance("tempfile.xml")
+            chartxml = ChartInstance(TEMPFILE_XML)
             for element in data["changes"]:
                 new_element_as_object = object_from_dict(element)
                 
@@ -302,7 +303,7 @@ def api():
                 update_chart(chartxml.chart_instance, new_element_as_object, remove = False)
                 
             chartxml.save()
-            with open("tempfile.xml") as file:
+            with open(TEMPFILE_XML) as file:
                 return new_response(result = apiresults["SUCCESS"], raw_chart = file.read())
 
     return new_response(result = apiresults["INVALID_FUNCTION"], error_info = head["function"])

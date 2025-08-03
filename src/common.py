@@ -1,5 +1,7 @@
 from enum import Enum
 
+TEMPFILE_XML = "tempfile.xml"
+
 class Result(Enum):
     SUCCESS = 0
     NOTE_DOESNT_EXIST = 1

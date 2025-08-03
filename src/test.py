@@ -731,6 +731,22 @@ class MiscTests(unittest.TestCase):
 
         check()
 
+class TestV3(unittest.TestCase):
+    def test_parse_chart(self):
+        generateTestChart()
+        app.testing = True
+        
+        with open("testchart1.xml") as file:
+            with app.test_client() as client:
+                chartdata = file.read()
+
+                result = client.post("/api", json = new_request(function = "parse_chart", filename = "tempfile.xml", raw_chart = chartdata))
+
+                self.assertTrue(len(result.json["data"]["steps"]) > 0)
+                self.assertTrue(len(result.json["data"]["bpms"]) > 0)
+                self.assertTrue(len(result.json["data"]["measures"]) > 0)
+
+
 if __name__ == "__main__":
     #Charts for dynamic analysis testing (ie not for unit tests)
     generateCompleteChart()

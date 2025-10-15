@@ -27,9 +27,8 @@ class IXMLCollection:
             if i == key:
                 return self.collectionType(item)
 
-        if (key == -1):
-            #note to future generations: make this work properly and not just for -1 lol
-            return lastElement
+        if (key < 0):
+            return [self.collectionType(x) for x in self.innerElement][key];
 
         return None
 

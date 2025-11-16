@@ -7,7 +7,7 @@ import unittest
 import hashlib
 
 #post refactor imports
-from chart_tools_new import *
+from chart_tools import *
 from app import app, new_request
 import os
 

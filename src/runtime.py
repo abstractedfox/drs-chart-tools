@@ -1,4 +1,4 @@
-from chart_tools_new import *
+from chart_tools import *
 import uuid
 
 class LogLevel(Enum):

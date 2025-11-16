@@ -8,3 +8,5 @@ Currently has everything you need to generate and manipulate charts programmatic
     - Has limited implementation of manipulation of effects and backgrounds (supported in xml abstraction but incomplete implementation in layers above)
 - Database
     - XML abstraction only
+
+/notes is just my own unorganized notes from looking into the format, they're not guaranteed to be 'nice' but they may be sufficient in case anyone else needs an idea of how the format works 

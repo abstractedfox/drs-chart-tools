@@ -1,6 +1,0 @@
-[project]
-name = "drs-chart-tools"
-version = "0.1"
-
-#[tool.setuptools]
-#py_modules = ["common.py", "chart_xml_interface.py", "chart_tools.py", "db_tools.py"]

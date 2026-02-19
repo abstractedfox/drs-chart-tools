@@ -10,11 +10,11 @@ SEQ_VER = 9
 
 #Generic functions implementing things for xml wrapper classes that we want to treat as collection types
 class IXMLCollection:
-    #for each implementation of this class, set this to the abstracted type of the XML tag that this collection is supposed to track
-    collectionType = None
 
     def __init__(self):
-        pass
+        #for each implementation of this class, set this to the abstracted type of the XML tag that this collection is supposed to track
+        self.collectionType = None
+        self.innerElement = None
 
     def __getitem__(self, key):
         i = -1;

@@ -2,11 +2,13 @@ from chart_xml_interface import *
 from common import *
 
 
+#Add things that are common to all dicts representing tags
 def add_dict_commons(dictionary):
     dictionary["exists"] = 1 #by default, the tag exists (using int for interop w js)
 
 
-#Dict structures to be used by the API, use these to ensure correctness
+#These functions return premade dict structures, use these to ensure correctness where dicts are made
+
 def new_bpm_info_dict(tick = 0, bpm = 0):
     result = {"type": "bpm_info", "tick": tick, "bpm": bpm}
     add_dict_commons(result)
@@ -50,7 +52,7 @@ class verifydict:
         self.dictionary[key] = value
 
 
-#For a given chart element represented as a dict, receive it as an appropriate wrapper class instance from chart_xml_interface
+#For a chart element represented as a dict, receive it as an appropriate wrapper class instance from chart_xml_interface
 def object_from_dict(dictionary):
     result = None
     
@@ -108,7 +110,8 @@ def dict_from_object(classinstance):
     if type(classinstance) == pointXML:
         result = new_point_dict()
 
-    for key in [x for x in dir(classinstance) if x not in dir(dummy())]:
+    default_attributes = dummy()
+    for key in [x for x in dir(classinstance) if x not in dir(default_attributes)]:
         if key == "innerElement":
             continue
         if key == "long_point":

@@ -31,6 +31,10 @@ Requests should be JSON objects that look like:
         }
 }
 ```
+Example:
+```
+{'head': {'function': 'update_chart', 'id': '3322dc25d2564c41abdcd80f7f10e922'}, 'data': {'changes': [{'type': 'step', 'start_tick': 0, 'end_tick': 0, 'left_pos': 0, 'right_pos': 6000, 'kind': 1, 'player_id': 1, 'long_point': [], 'exists': 1}
+```
 
 Responses look like:
 ```

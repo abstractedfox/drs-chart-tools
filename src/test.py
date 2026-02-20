@@ -723,13 +723,10 @@ class MiscTests(unittest.TestCase):
             filedata = file.read()
             self.assertTrue(len(filedata) > 0)
 
-        def check():
-            with open("frontendtest.xml", "r") as file:
-                filedata2 = file.read()
-                self.assertTrue(len(filedata2) > 0)
-                self.assertEqual(filedata, filedata2)
-
-        check()
+        with open("frontendtest.xml", "r") as file:
+            filedata2 = file.read()
+            self.assertTrue(len(filedata2) > 0)
+            self.assertEqual(filedata, filedata2)
 
 class TestV3(unittest.TestCase):
     def test_parse_chart(self):

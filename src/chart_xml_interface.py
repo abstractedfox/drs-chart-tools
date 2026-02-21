@@ -8,7 +8,7 @@ SEQ_VER = 9
 #Classes are for interfacing with XML structures that already exist in a pythonic way, they are really just an abstraction over the ElementTree module.
 #To create new XML structures, use the functions that generate empty ones, then interface with them using the abstraction classes
 
-#Generic functions implementing things for xml wrapper classes that we want to treat as collection types
+#Generic functions implementing things for xml wrapper classes that we want to treat as collection types. As the name suggests, this should be treated like an interface
 class _IXMLCollection:
     def __init__(self):
         #in the subclass, set this to the abstracted type of the XML tag that this collection is supposed to track

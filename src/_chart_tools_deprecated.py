@@ -122,7 +122,7 @@ def getLastTimeInStep(step: StepXML) -> Ticks:
 
 #Because we need to be able to find tags by their attributes, there is not always a guarantee that the python abstraction of a tag passed in by the API will be a reference to the same tag in the ElementTree structure. so for those occasions where we need a guaranteed reference, use this
 #tl;dr: If the passed 'objectToGet' matches an object in the collection using the equality operator, returns the object as found in the collection
-def getReferenceByValue(parentTag: IXMLCollection, objectToGet):
+def getReferenceByValue(parentTag: ____IXMLCollection, objectToGet):
     for item in parentTag:
         if item == objectToGet:
             return item
@@ -307,7 +307,7 @@ class Chart:
         if pointToModify not in stepToModify.long_point:
             return Result.INVALID_LONG_POINT
         
-        append_end_pos_XML(pointToModify.innerElement)
+        append_end_pos_XML(pointToModify.inner_element)
 
         pointToModify.left_end_pos = position.left_pos
         pointToModify.right_end_pos = position.right_pos
@@ -363,7 +363,7 @@ class Chart:
             if len([x for x in [r ,g, b] if x > -1 and x < 256]) != 3:
                 return Result.COLOR_OUT_OF_RANGE
             
-            append_ColorTagXML(newEffect.param.innerElement)
+            append_ColorTagXML(newEffect.param.inner_element)
 
             newEffect.param.color.red = r
             newEffect.param.color.green = g

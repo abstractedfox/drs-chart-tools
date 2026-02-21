@@ -8,7 +8,7 @@ class LogLevel(Enum):
     DEBUG = 3
 
 def load_from_file(path):
-    return chartRootXML(xml.etree.ElementTree.parse(path).getroot())
+    return ChartRootXML(xml.etree.ElementTree.parse(path).getroot())
 
 def log(string, level = LogLevel.BASIC):
     print(string)
@@ -23,7 +23,7 @@ class Session:
             self.chart_instance = load_from_file(path)
         except FileNotFoundError:
             log("Could not find file {}, a new chart will be created on save.".format(path), LogLevel.WARNING)
-            self.chart_instance = chartRootXML(createEmptyChartXML())
+            self.chart_instance = ChartRootXML(create_empty_ChartXML())
 
     def save(self):
         return save_chart(self.chart_instance, self.path) 

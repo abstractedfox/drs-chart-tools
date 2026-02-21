@@ -16,15 +16,15 @@ testchart1md5sum = "b658ba41ebd45383617d91d59e83ed6b"
 def testXMLInterface():
     fumen = xml.etree.ElementTree.parse(sys.argv[1])
 
-    testChartInfo = chartInfo(fumen.getroot())
+    testChartInfoXML = ChartInfoXML(fumen.getroot())
 
-    print(testChartInfo.time_unit)
-    print(testChartInfo.end_tick)
-    print("bpm 0 tick: " + testChartInfo.bpm_info[0].tick)
-    print("bpm 0 bpm: " + testChartInfo.bpm_info[0].bpm)
-    print("measure 0 tick: " + testChartInfo.measure_info[0].tick)
-    print("measure 0 num: " + testChartInfo.measure_info[0].num)
-    print("measure 0 denomi: " + testChartInfo.measure_info[0].denomi)
+    print(testChartInfoXML.time_unit)
+    print(testChartInfoXML.end_tick)
+    print("bpm 0 tick: " + testChartInfoXML.bpm_info[0].tick)
+    print("bpm 0 bpm: " + testChartInfoXML.bpm_info[0].bpm)
+    print("measure 0 tick: " + testChartInfoXML.measure_info[0].tick)
+    print("measure 0 num: " + testChartInfoXML.measure_info[0].num)
+    print("measure 0 denomi: " + testChartInfoXML.measure_info[0].denomi)
 
     sequenceTest = sequence_data(fumen.getroot().find("sequence_data"))
 
@@ -218,17 +218,17 @@ def generateCompleteChart():
 
 
 class TestChartXMLInterface(unittest.TestCase):
-    def testbpmInfoXMLRemoveBPM(self):
+    def testBpmInfoXMLRemoveBPM(self):
         testChart = makeDummyChart()
 
-        self.assertEqual(testChart.xml.info.bpm_info.removeAtIndex(500), Result.INVALID_INDEX, "Invalid bpm index can't be removed")
-        self.assertEqual(testChart.xml.info.bpm_info.removeAtIndex(0), Result.SUCCESS, "Valid bpm index can be removed")
+        self.assertEqual(testChart.xml.info.bpm_info.remove_at_index(500), Result.INVALID_INDEX, "Invalid bpm index can't be removed")
+        self.assertEqual(testChart.xml.info.bpm_info.remove_at_index(0), Result.SUCCESS, "Valid bpm index can be removed")
 
     def testmeasureInfoRemoveMeasure(self):
         testChart = makeDummyChart()
 
-        self.assertEqual(testChart.xml.info.measure_info.removeAtIndex(500), Result.INVALID_INDEX, "Invalid measure index can't be removed")
-        self.assertEqual(testChart.xml.info.measure_info.removeAtIndex(0), Result.SUCCESS, "Valid measure index can be removed")
+        self.assertEqual(testChart.xml.info.measure_info.remove_at_index(500), Result.INVALID_INDEX, "Invalid measure index can't be removed")
+        self.assertEqual(testChart.xml.info.measure_info.remove_at_index(0), Result.SUCCESS, "Valid measure index can be removed")
 
     #Remove every other step from a chart
     def testsequenceDataRemoveSteps_XML(self):
@@ -253,7 +253,7 @@ class TestChartXMLInterface(unittest.TestCase):
     def testRemoveByValue(self):
         testChart = makeDummyChart()
 
-        removeStep = stepXML(createEmptyStepXML())
+        removeStep = StepXML(create_empty_StepXML())
         removeStep.start_tick = 4800
         removeStep.end_tick = 4800
         removeStep.left_pos = 16384
@@ -267,7 +267,7 @@ class TestChartXMLInterface(unittest.TestCase):
         self.assertNotEqual(testChart.steps[2].start_tick, removeStep.start_tick)
 
         #make sure we cant remove an invalid BPM
-        badBPM = bpmXML(createEmptyBPMXML())
+        badBPM = BpmXML(create_empty_BpmXML())
         badBPM.tick = 0
         badBPM.bpm = 12345
         self.assertEqual(testChart.removeBPM(badBPM), Result.NO_ACTION)
@@ -277,21 +277,21 @@ class TestChartXMLInterface(unittest.TestCase):
         self.assertEqual(testChart.removeBPM(badBPM), Result.NO_ACTION)
 
         #remove a BPM
-        newBPM = bpmXML(createEmptyBPMXML())
+        newBPM = BpmXML(create_empty_BpmXML())
         newBPM.tick = 0
         newBPM.bpm = 12100
         self.assertEqual(testChart.removeBPM(newBPM), Result.SUCCESS)
         self.assertEqual(len(testChart.xml.info.bpm_info), 0)
         
         #cant remove invalid measure
-        badMeasure = measureXML(createEmptyMeasureXML())
+        badMeasure = MeasureXML(create_empty_MeasureXML())
         badMeasure.tick = 10
         badMeasure.num = 5
         badMeasure.denomi = 4
 
         self.assertEqual(testChart.removeMeasure(badMeasure), Result.NO_ACTION)
 
-        newMeasure = measureXML(createEmptyMeasureXML())
+        newMeasure = MeasureXML(create_empty_MeasureXML())
         newMeasure.tick = 0
         newMeasure.num = 4
         newMeasure.denomi = 4
@@ -304,7 +304,7 @@ class TestChartXMLInterface(unittest.TestCase):
         self.assertEqual(len(testChart.steps[4].long_point), 1)
         
         #can't remove valid long_point when the step doesn't exist in the chart
-        badStep = stepXML(createEmptyStepXML())
+        badStep = StepXML(create_empty_StepXML())
         badStep.start_tick = 10
         badStep.end_tick = 10
         badStep.left_pos = 10
@@ -315,7 +315,7 @@ class TestChartXMLInterface(unittest.TestCase):
         self.assertEqual(testChart.removeLongPoint(badStep, testChart.steps[4].long_point[0]), Result.NOTE_DOESNT_EXIST)
 
         #can't remove invalid point
-        badPoint = pointXML(createEmptyPointXML())
+        badPoint = PointXML(create_empty_PointXML())
         badPoint.tick = 10
         badPoint.left_pos = 10
         badPoint.right_pos = 10
@@ -339,7 +339,7 @@ class TestChartToolsNew(unittest.TestCase):
     def test_object_from_dict(self):
         bpmdict = new_bpm_info_dict(bpm = 100)
         result = object_from_dict(bpmdict)
-        self.assertEqual(type(result), bpmXML)
+        self.assertEqual(type(result), BpmXML)
         self.assertEqual(result.bpm, 100)
     
         measuredict = new_measure_info_dict(num = 4, denomi = 8)
@@ -372,7 +372,7 @@ class TestChartToolsNew(unittest.TestCase):
         stepdict["long_point"].append(pointdict2)
         result = object_from_dict(stepdict)
         self.assertEqual(len(result.long_point), 2)
-        self.assertEqual(type(result.long_point[0]), pointXML)
+        self.assertEqual(type(result.long_point[0]), PointXML)
     
     def test_dict_from_object(self):
         bpmdict = new_bpm_info_dict(bpm = 100, tick = 200)

@@ -83,11 +83,11 @@ class IXMLCollection:
 
 
 #To be used on classes where we'd like to be able to use isinstance() to detect any of the tag implementations
-class baseXML:
+class BaseXML:
     pass
 
 
-class bpmXML(baseXML):
+class BpmXML(BaseXML):
     def __init__(self, bpmTag: xml.etree.ElementTree.Element):
         self.innerElement = bpmTag
 
@@ -109,7 +109,7 @@ class bpmXML(baseXML):
         self.innerElement.find("bpm").text = str(value)
 
 
-class measureXML(baseXML):
+class MeasureXML(BaseXML):
     def __init__(self, measureTag: xml.etree.ElementTree.Element):
         self.innerElement = measureTag
 
@@ -139,7 +139,7 @@ class measureXML(baseXML):
 
 
 #The <info> tag, ie the chart header
-class chartInfo(baseXML):
+class ChartInfoXML(BaseXML):
     def __init__(self, chartRoot: xml.etree.ElementTree.Element):
         self.innerElement = chartRoot.find("info")
 
@@ -159,14 +159,14 @@ class chartInfo(baseXML):
 
     @property
     def bpm_info(self):
-        return bpmInfoXML(self.innerElement.find("bpm_info"))
+        return BpmInfoXML(self.innerElement.find("bpm_info"))
 
     @property
     def measure_info(self):
-        return measureInfoXML(self.innerElement.find("measure_info"))
+        return MeasureInfoXML(self.innerElement.find("measure_info"))
 
 #used inside <long_point>s
-class pointXML(baseXML):
+class PointXML(BaseXML):
     def __init__(self, pointTag: xml.etree.ElementTree.Element):
         self.innerElement = pointTag
 
@@ -204,7 +204,7 @@ class pointXML(baseXML):
     @left_end_pos.setter
     def left_end_pos(self, value):
         if self.innerElement.find("left_end_pos") is None:
-            appendEndPosXML(self.innerElement)
+            append_end_pos_XML(self.innerElement)
         self.innerElement.find("left_end_pos").text = str(value)
 
     #This tag does not always exist, so this can return None under normal conditions
@@ -217,11 +217,11 @@ class pointXML(baseXML):
     @right_end_pos.setter
     def right_end_pos(self, value):
         if self.innerElement.find("right_end_pos") is None:
-            appendEndPosXML(self.innerElement)
+            append_end_pos_XML(self.innerElement)
         self.innerElement.find("right_end_pos").text = str(value)
 
 
-class stepXML(baseXML):
+class StepXML(BaseXML):
     def __init__(self, stepTag: xml.etree.ElementTree.Element):
         self.innerElement = stepTag
 
@@ -272,10 +272,10 @@ class stepXML(baseXML):
 
     @property
     def long_point(self):
-        return longPointXML(self.innerElement.find("long_point"))
+        return LongPointXML(self.innerElement.find("long_point"))
 
 
-class colorTagXML:
+class ColorTagXML:
     def __init__(self, colorTag: xml.etree.ElementTree.Element):
         self.innerElement = colorTag
 
@@ -304,7 +304,7 @@ class colorTagXML:
         self.innerElement.find("blue").text = str(value)
 
 
-class paramTagXML:
+class ParamTagXML:
     def __init__(self, paramTag: xml.etree.ElementTree.Element):
         self.innerElement = paramTag
 
@@ -355,10 +355,10 @@ class paramTagXML:
 
     @property
     def color(self):
-        return colorTagXML(self.innerElement.find("color"))
+        return ColorTagXML(self.innerElement.find("color"))
 
 
-class extendTagXML:
+class ExtendTagXML:
     def __init__(self, extendTag: xml.etree.ElementTree.Element):
         self.innerElement = extendTag
 
@@ -381,30 +381,13 @@ class extendTagXML:
 
     @property
     def param(self):
-        return paramTagXML(self.innerElement.find("param"))
+        return ParamTagXML(self.innerElement.find("param"))
 
 
-class measureInfoXML(IXMLCollection):
-    def __init__(self, measureInfoXMLRoot: xml.etree.ElementTree.Element):
-        self.innerElement = measureInfoXMLRoot
-        self.collectionType = measureXML
-
-    def removeAtIndex(self, index: int) -> Result:
-        if index > (len(self) - 1):
-            return Result.INVALID_INDEX
-
-        try:
-            self.innerElement.remove(self[index].innerElement)
-        except Exception:
-            return Result.MISC_ERROR
-
-        return Result.SUCCESS
-
-
-class bpmInfoXML(IXMLCollection):
-    def __init__(self, bpmInfoXMLRoot: xml.etree.ElementTree.Element):
-        self.innerElement = bpmInfoXMLRoot
-        self.collectionType = bpmXML
+class MeasureInfoXML(IXMLCollection):
+    def __init__(self, MeasureInfoXMLRoot: xml.etree.ElementTree.Element):
+        self.innerElement = MeasureInfoXMLRoot
+        self.collectionType = MeasureXML
 
     def removeAtIndex(self, index: int) -> Result:
         if index > (len(self) - 1):
@@ -418,26 +401,43 @@ class bpmInfoXML(IXMLCollection):
         return Result.SUCCESS
 
 
-class longPointXML(IXMLCollection):
+class BpmInfoXML(IXMLCollection):
+    def __init__(self, BpmInfoXMLRoot: xml.etree.ElementTree.Element):
+        self.innerElement = BpmInfoXMLRoot
+        self.collectionType = BpmXML
+
+    def removeAtIndex(self, index: int) -> Result:
+        if index > (len(self) - 1):
+            return Result.INVALID_INDEX
+
+        try:
+            self.innerElement.remove(self[index].innerElement)
+        except Exception:
+            return Result.MISC_ERROR
+
+        return Result.SUCCESS
+
+
+class LongPointXML(IXMLCollection):
     def __init__(self, longPointTag: xml.etree.ElementTree.Element):
         self.innerElement = longPointTag
-        self.collectionType = pointXML
+        self.collectionType = PointXML
 
 
-class sequenceDataXML(IXMLCollection):
+class SequenceDataXML(IXMLCollection):
     def __init__(self, sequenceDataTag: xml.etree.ElementTree.Element):
         self.innerElement = sequenceDataTag
-        self.collectionType = stepXML
+        self.collectionType = StepXML
 
 
-class extendDataTagXML(IXMLCollection):
+class ExtendDataTagXML(IXMLCollection):
     def __init__(self, extendDataTag: xml.etree.ElementTree.Element):
         self.innerElement = extendDataTag
-        self.collectionType = extendTagXML
+        self.collectionType = ExtendTagXML
 
 
 #root tag of the chart
-class chartRootXML:
+class ChartRootXML:
     def __init__(self, dataTag: xml.etree.ElementTree.Element):
         if not isinstance(dataTag, xml.etree.ElementTree.Element):
             raise TypeError("Can only instantiate with an ElementTree.Element")
@@ -452,15 +452,15 @@ class chartRootXML:
 
     @property
     def info(self):
-        return chartInfo(self.innerElement)
+        return ChartInfoXML(self.innerElement)
 
     @property
     def sequence_data(self):
-        return sequenceDataXML(self.innerElement.find("sequence_data"))
+        return SequenceDataXML(self.innerElement.find("sequence_data"))
 
     @property
     def extend_data(self):
-        return extendDataTagXML(self.innerElement.find("extend_data"))
+        return ExtendDataTagXML(self.innerElement.find("extend_data"))
 
     def write(self, path) -> Result:
         assert isinstance(self.innerElement, xml.etree.ElementTree.Element)
@@ -476,7 +476,7 @@ class chartRootXML:
 
 
 #Functions for initializing empty XML
-def createEmptyBPMXML() -> xml.etree.ElementTree.Element:
+def create_empty_BpmXML() -> xml.etree.ElementTree.Element:
     newBPM = xml.etree.ElementTree.Element("bpm")
 
     xml.etree.ElementTree.SubElement(newBPM, "tick", {"__type": "s32"})
@@ -485,7 +485,7 @@ def createEmptyBPMXML() -> xml.etree.ElementTree.Element:
     return newBPM
 
 
-def createEmptyMeasureXML() -> xml.etree.ElementTree.Element:
+def create_empty_MeasureXML() -> xml.etree.ElementTree.Element:
     newMeasure = xml.etree.ElementTree.Element("measure")
 
     xml.etree.ElementTree.SubElement(newMeasure, "tick", {"__type": "s32"})
@@ -495,7 +495,7 @@ def createEmptyMeasureXML() -> xml.etree.ElementTree.Element:
     return newMeasure
 
 
-def createEmptyChartXML() -> xml.etree.ElementTree.Element:
+def create_empty_ChartXML() -> xml.etree.ElementTree.Element:
     newChart = xml.etree.ElementTree.Element("data")
 
     #We'll set this implicitly as we presently only handle sequence version 9
@@ -517,7 +517,7 @@ def createEmptyChartXML() -> xml.etree.ElementTree.Element:
     return newChart
 
 
-def createEmptyStepXML() -> xml.etree.ElementTree.Element:
+def create_empty_StepXML() -> xml.etree.ElementTree.Element:
     newStep = xml.etree.ElementTree.Element("step")
 
     xml.etree.ElementTree.SubElement(newStep, "start_tick", {"__type": "s32"})
@@ -533,7 +533,7 @@ def createEmptyStepXML() -> xml.etree.ElementTree.Element:
 
 
 #create an empty <point> tag (to be used in <step><long_point>)
-def createEmptyPointXML() -> xml.etree.ElementTree.Element:
+def create_empty_PointXML() -> xml.etree.ElementTree.Element:
     newPoint = xml.etree.ElementTree.Element("point")
 
     xml.etree.ElementTree.SubElement(newPoint, "tick", {"__type": "s32"})
@@ -543,11 +543,11 @@ def createEmptyPointXML() -> xml.etree.ElementTree.Element:
     return newPoint
 
 #append *_end_pos tags to a <point> tag
-def appendEndPosXML(pointTag: xml.etree.ElementTree.Element):
+def append_end_pos_XML(pointTag: xml.etree.ElementTree.Element):
     xml.etree.ElementTree.SubElement(pointTag, "left_end_pos", {"__type": "s32"})
     xml.etree.ElementTree.SubElement(pointTag, "right_end_pos", {"__type": "s32"})
 
-def appendColorTagXML(paramTag: xml.etree.ElementTree.Element): 
+def append_ColorTagXML(paramTag: xml.etree.ElementTree.Element): 
     colorTag = xml.etree.ElementTree.SubElement(paramTag, "color")
     xml.etree.ElementTree.SubElement(colorTag, "red", {"__type": "s32"})
     xml.etree.ElementTree.SubElement(colorTag, "green", {"__type": "s32"})
@@ -555,7 +555,7 @@ def appendColorTagXML(paramTag: xml.etree.ElementTree.Element):
 
     return colorTag
 
-def createEmptyExtendXML() -> xml.etree.ElementTree.Element:
+def create_empty_ExtendTagXML() -> xml.etree.ElementTree.Element:
     newExtend = xml.etree.ElementTree.Element("extend")
 
     xml.etree.ElementTree.SubElement(newExtend, "type", {"__type": "str"})

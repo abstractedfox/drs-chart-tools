@@ -113,7 +113,7 @@ def beatsToTicks(beats: Beats, timeUnit: Ticks):
     return int(math.floor(timeUnit * beats))
 
 #Get the tick of the last element in a step
-def getLastTimeInStep(step: stepXML) -> Ticks:
+def getLastTimeInStep(step: StepXML) -> Ticks:
     if len(step.long_point) == 0:
         return step.start_tick
 
@@ -133,9 +133,9 @@ class Chart:
     #Either pass a chart root tag as xml.etree.ElementTree.Element, or pass nothing and create an empty chart
     def __init__(self, xml:xml.etree.ElementTree.Element = None, timeUnit = Ticks(480), endTick = Ticks(0)):
         if xml is not None:
-            self.xml = chartRootXML(xml)
+            self.xml = ChartRootXML(xml)
         else:
-            self.xml = chartRootXML(createEmptyChartXML())
+            self.xml = ChartRootXML(create_empty_ChartXML())
             self.xml.info.time_unit = timeUnit
             self.xml.info.end_tick = endTick
 
@@ -157,11 +157,11 @@ class Chart:
         if bpm in self.xml.info.bpm_info:
             return Result.TICK_CONFLICT
 
-        newBPM = bpmXML(createEmptyBPMXML())
+        newBPM = BpmXML(create_empty_BpmXML())
         newBPM.tick = time
         newBPM.bpm = bpm.getBPMFormatted()
 
-        newMeasure = measureXML(createEmptyMeasureXML())
+        newMeasure = MeasureXML(create_empty_MeasureXML())
         newMeasure.tick = time
         newMeasure.num = bpm.timeSigNum
         newMeasure.denomi = bpm.timeSigDenomi
@@ -175,7 +175,7 @@ class Chart:
         if bpm < 0:
             return Result.BPM_OUT_OF_BOUNDS
 
-        newBPM = bpmXML(createEmptyBPMXML())
+        newBPM = BpmXML(create_empty_BpmXML())
         newBPM.tick = time
         newBPM.bpm = bpm
 
@@ -186,7 +186,7 @@ class Chart:
         if time < 0 or num < 1 or denomi < 1:
             return Result.MEASURE_OUT_OF_BOUNDS
 
-        newMeasure = measureXML(createEmptyMeasureXML())
+        newMeasure = MeasureXML(create_empty_MeasureXML())
         newMeasure.tick = time
         newMeasure.num = num 
         newMeasure.denomi = denomi 
@@ -195,7 +195,7 @@ class Chart:
         
         return Result.SUCCESS
 
-    def addMeasureRaw(self, measure: measureXML):
+    def addMeasureRaw(self, measure: MeasureXML):
         if measure.tick < 0 or measure.num < 1 or measure.denomi < 1:
             return Result.MEASURE_OUT_OF_BOUNDS
 
@@ -203,10 +203,10 @@ class Chart:
 
         return Result.SUCCESS
 
-    def removeBPM(self, bpmTag: bpmXML):
+    def removeBPM(self, bpmTag: BpmXML):
         return self.xml.info.bpm_info.remove(bpmTag)        
 
-    def removeMeasure(self, measureTag: measureXML):
+    def removeMeasure(self, measureTag: MeasureXML):
         return self.xml.info.measure_info.remove(measureTag)
 
     def addNote(self, position: noteCoordinates, time: Ticks, playerID: PlayerID, stepType: StepTypes):
@@ -216,7 +216,7 @@ class Chart:
         if position.left_pos < noteCoordinates.MIN or position.right_pos > noteCoordinates.MAX:
             return Result.NOTE_OUT_OF_BOUNDS
 
-        newStep = stepXML(createEmptyStepXML())
+        newStep = StepXML(create_empty_StepXML())
         newStep.start_tick = time
         newStep.end_tick = time
         newStep.left_pos = position.left_pos
@@ -228,7 +228,7 @@ class Chart:
 
         return newStep
 
-    def addNoteRaw(self, newNote: stepXML): 
+    def addNoteRaw(self, newNote: StepXML): 
         if newNote.start_tick < 0 or newNote.end_tick < 0 or newNote.end_tick < newNote.start_tick:
             return Result.TIME_OUT_OF_BOUNDS
 
@@ -245,14 +245,14 @@ class Chart:
 
         return Result.SUCCESS
 
-    def removeNote(self, noteTag: stepXML):
+    def removeNote(self, noteTag: StepXML):
         noteRef = getReferenceByValue(self.steps, noteTag)
         if noteRef is None:
             return Result.NOTE_DOESNT_EXIST
         return self.xml.sequence_data.remove(noteTag);
 
-    def addLongPoint(self, stepToModify: stepXML, duration: Ticks):
-        newPoint = pointXML(createEmptyPointXML())
+    def addLongPoint(self, stepToModify: StepXML, duration: Ticks):
+        newPoint = PointXML(create_empty_PointXML())
 
         newPoint.tick = getLastTimeInStep(stepToModify) + duration
         newPoint.left_pos = stepToModify.left_pos
@@ -264,7 +264,7 @@ class Chart:
         
         return returnVal
 
-    def addLongPointRaw(self, stepToModify: stepXML, newPoint: pointXML):
+    def addLongPointRaw(self, stepToModify: StepXML, newPoint: PointXML):
         stepRef = getReferenceByValue(self.steps, stepToModify)
         if stepRef is None:
             return Result.NOTE_DOESNT_EXIST
@@ -284,7 +284,7 @@ class Chart:
 
         return Result.SUCCESS
 
-    def removeLongPoint(self, stepToModify: stepXML, pointTag: longPointXML):
+    def removeLongPoint(self, stepToModify: StepXML, pointTag: LongPointXML):
         stepRef = getReferenceByValue(self.steps, stepToModify)
         if stepRef is None:
             return Result.NOTE_DOESNT_EXIST
@@ -296,18 +296,18 @@ class Chart:
 
         return Result.SUCCESS
 
-    def movePoint(self, stepToModify: stepXML, pointToModify: pointXML, position: noteCoordinates):
+    def movePoint(self, stepToModify: StepXML, pointToModify: PointXML, position: noteCoordinates):
         if pointToModify not in stepToModify.long_point:
             return Result.INVALID_LONG_POINT
 
         pointToModify.left_pos = position.left_pos
         pointToModify.right_pos = position.right_pos
 
-    def addSwipe(self, stepToModify: stepXML, pointToModify: pointXML, position: noteCoordinates):
+    def addSwipe(self, stepToModify: StepXML, pointToModify: PointXML, position: noteCoordinates):
         if pointToModify not in stepToModify.long_point:
             return Result.INVALID_LONG_POINT
         
-        appendEndPosXML(pointToModify.innerElement)
+        append_end_pos_XML(pointToModify.innerElement)
 
         pointToModify.left_end_pos = position.left_pos
         pointToModify.right_end_pos = position.right_pos
@@ -316,7 +316,7 @@ class Chart:
         if time < 0:
             return Result.TIME_OUT_OF_BOUNDS
 
-        newJump = stepXML(createEmptyStepXML())
+        newJump = StepXML(create_empty_StepXML())
 
         newJump.start_tick = time
         newJump.end_tick = time
@@ -333,7 +333,7 @@ class Chart:
         if time < 0:
             return Result.TIME_OUT_OF_BOUNDS
 
-        newDown = stepXML(createEmptyStepXML())
+        newDown = StepXML(create_empty_StepXML())
 
         newDown.start_tick = time
         newDown.end_tick = time
@@ -351,7 +351,7 @@ class Chart:
         if layerName not in layerNameValues.keys():
             return Result.INVALID_LAYER_NAME
 
-        newEffect = extendTagXML(createEmptyExtendXML())
+        newEffect = ExtendTagXML(create_empty_ExtendTagXML())
         newEffect.type_tag = extend_type
         newEffect.param.layer_name = layerName
         newEffect.param.time = time
@@ -363,7 +363,7 @@ class Chart:
             if len([x for x in [r ,g, b] if x > -1 and x < 256]) != 3:
                 return Result.COLOR_OUT_OF_RANGE
             
-            appendColorTagXML(newEffect.param.innerElement)
+            append_ColorTagXML(newEffect.param.innerElement)
 
             newEffect.param.color.red = r
             newEffect.param.color.green = g

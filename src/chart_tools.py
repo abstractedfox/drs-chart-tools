@@ -61,16 +61,16 @@ def object_from_dict(dictionary):
 
     match dictionary["type"]:
         case "bpm_info":
-            result = bpmXML(createEmptyBPMXML())
+            result = BpmXML(create_empty_BpmXML())
 
         case "measure_info":
-            result = measureXML(createEmptyMeasureXML())
+            result = MeasureXML(create_empty_MeasureXML())
         
         case "step":
-            result = stepXML(createEmptyStepXML())
+            result = StepXML(create_empty_StepXML())
 
         case "point":
-            result = pointXML(createEmptyPointXML())
+            result = PointXML(create_empty_PointXML())
 
     if dictionary["type"] == "point" and dictionary["left_end_pos"] == None and dictionary["right_end_pos"] == None:
         dictionary.pop("left_end_pos")
@@ -98,16 +98,16 @@ def dict_from_object(classinstance):
             pass
 
     result = None
-    if type(classinstance) == bpmXML:
+    if type(classinstance) == BpmXML:
         result = new_bpm_info_dict()
 
-    if type(classinstance) ==  measureXML:
+    if type(classinstance) ==  MeasureXML:
         result = new_measure_info_dict()
 
-    if type(classinstance) == stepXML:
+    if type(classinstance) == StepXML:
         result = new_step_dict()
 
-    if type(classinstance) == pointXML:
+    if type(classinstance) == PointXML:
         result = new_point_dict()
 
     default_attributes = dummy()
@@ -123,14 +123,14 @@ def dict_from_object(classinstance):
     return result
 
 
-def new_chart() -> chartRootXML:
-    return chartRootXML(createEmptyChartXML())
+def new_chart() -> ChartRootXML:
+    return ChartRootXML(create_empty_ChartXML())
 
 
 #Where 'element' is a bpm, measure, step, or point.
 #Element is added to the chart by default or removed from the chart (if it exists) if remove == True
-def update_chart(chart: chartRootXML, element, remove = False, point_parent_step = None, return_elements = False) -> Optional[Union[Result|baseXML]]:
-    if type(element) == stepXML:
+def update_chart(chart: ChartRootXML, element, remove = False, point_parent_step = None, return_elements = False) -> Optional[Union[Result|BaseXML]]:
+    if type(element) == StepXML:
         if remove:
             return chart.sequence_data.remove(element)
         
@@ -150,7 +150,7 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
         chart.sequence_data.append(element)
         return element if return_elements else Result.SUCCESS
 
-    if type(element) == measureXML:
+    if type(element) == MeasureXML:
         if remove:
             return chart.info.measure_info.remove(element)
 
@@ -162,7 +162,7 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
         chart.info.measure_info.append(element)
         return element if return_elements else Result.SUCCESS
     
-    if type(element) == bpmXML:
+    if type(element) == BpmXML:
         if remove:
             return chart.info.bpm_info.remove(element)
 
@@ -174,7 +174,7 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
         chart.info.bpm_info.append(element)
         return element if return_elements else Result.SUCCESS
 
-    if type(element) == pointXML: 
+    if type(element) == PointXML: 
         if point_parent_step is None:
             return Result.INVALID_LONG_POINT
         
@@ -203,11 +203,11 @@ def update_chart(chart: chartRootXML, element, remove = False, point_parent_step
         return element if return_elements else Result.SUCCESS
 
 
-def update_chart_diff(chart: chartRootXML, element, remove = False, point_parent_step = None, diff = [], diff_as_dicts = True) -> Result:
+def update_chart_diff(chart: ChartRootXML, element, remove = False, point_parent_step = None, diff = [], diff_as_dicts = True) -> Result:
     result = update_chart(chart, element, remove = remove, point_parent_step = point_parent_step, return_elements = True)
     
     #When the return_elements arg is True, update_chart returns the actual element that was added to indicate success
-    if isinstance(result, baseXML):
+    if isinstance(result, BaseXML):
         element = result
         result = Result.SUCCESS
 
@@ -221,7 +221,7 @@ def update_chart_diff(chart: chartRootXML, element, remove = False, point_parent
     return result
 
 
-def save_chart(chart: chartRootXML, filename: str) -> Result:
+def save_chart(chart: ChartRootXML, filename: str) -> Result:
     chart.info.end_tick = 0
     for step in chart.sequence_data:
         if step.end_tick > chart.info.end_tick:

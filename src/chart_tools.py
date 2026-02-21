@@ -112,7 +112,7 @@ def dict_from_object(classinstance):
 
     default_attributes = dummy()
     for key in [x for x in dir(classinstance) if x not in dir(default_attributes)]:
-        if key == "innerElement":
+        if key == "inner_element":
             continue
         if key == "long_point":
             for point in getattr(classinstance, "long_point"):

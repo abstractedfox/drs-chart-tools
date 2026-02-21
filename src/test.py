@@ -221,14 +221,14 @@ class TestChartXMLInterface(unittest.TestCase):
     def testBpmInfoXMLRemoveBPM(self):
         testChart = makeDummyChart()
 
-        self.assertEqual(testChart.xml.info.bpm_info.removeAtIndex(500), Result.INVALID_INDEX, "Invalid bpm index can't be removed")
-        self.assertEqual(testChart.xml.info.bpm_info.removeAtIndex(0), Result.SUCCESS, "Valid bpm index can be removed")
+        self.assertEqual(testChart.xml.info.bpm_info.remove_at_index(500), Result.INVALID_INDEX, "Invalid bpm index can't be removed")
+        self.assertEqual(testChart.xml.info.bpm_info.remove_at_index(0), Result.SUCCESS, "Valid bpm index can be removed")
 
     def testmeasureInfoRemoveMeasure(self):
         testChart = makeDummyChart()
 
-        self.assertEqual(testChart.xml.info.measure_info.removeAtIndex(500), Result.INVALID_INDEX, "Invalid measure index can't be removed")
-        self.assertEqual(testChart.xml.info.measure_info.removeAtIndex(0), Result.SUCCESS, "Valid measure index can be removed")
+        self.assertEqual(testChart.xml.info.measure_info.remove_at_index(500), Result.INVALID_INDEX, "Invalid measure index can't be removed")
+        self.assertEqual(testChart.xml.info.measure_info.remove_at_index(0), Result.SUCCESS, "Valid measure index can be removed")
 
     #Remove every other step from a chart
     def testsequenceDataRemoveSteps_XML(self):

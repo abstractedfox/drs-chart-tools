@@ -26,7 +26,7 @@ apiresults = {
     "INVALID_SESSION": "INVALID_SESSION",
 }
 
-def new_response(result = apiresults["UNDEFINED"], error_info = None, diff: list = None, steps: list = None, bpms: list = None, measures: list = None, session_ID = None, raw_chart = None):
+def new_response(result: Result = apiresults["UNDEFINED"], error_info: str | None = None, diff: list | None = None, steps: list | None = None, bpms: list | None = None, measures: list | None = None, session_ID: str | None = None, raw_chart: str | None = None):
     response = {"head": {"result": result}, "data": {}}
     if result not in apiresults:
         raise NameError("\"{}\" not found in apiresults.".format(result))
@@ -63,7 +63,7 @@ def new_response(result = apiresults["UNDEFINED"], error_info = None, diff: list
     return response 
 
 #Request reference, also useful for testing
-def new_request(function = "", data: dict = None, changes: list = None, filename = None, session_ID = None, raw_chart = None):
+def new_request(function: str = "", data: dict | None = None, changes: list | None = None, filename: str | None = None, session_ID: str | None = None, raw_chart: str | None = None):
     data = {} if data == None else data
     request = {"head": {"function": function}, "data": data }
 

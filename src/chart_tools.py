@@ -9,32 +9,32 @@ def add_dict_commons(dictionary):
 
 #These functions return premade dict structures, use these to ensure correctness where dicts are made
 
-def new_bpm_info_dict(tick = 0, bpm = 0):
+def new_bpm_info_dict(tick: int = 0, bpm: int = 0):
     result = {"type": "bpm_info", "tick": tick, "bpm": bpm}
     add_dict_commons(result)
     return result
 
 
-def new_measure_info_dict(tick = 0, num = 0, denomi = 0):
+def new_measure_info_dict(tick: int = 0, num: int = 0, denomi: int = 0):
     result = {"type": "measure_info", "tick": tick, "num": num, "denomi": denomi}
     add_dict_commons(result)
     return result
 
 
-def new_step_dict(start_tick = 0, end_tick = 0, left_pos = 0, right_pos = 0, kind = 1, player_id = 0, long_point = None):
+def new_step_dict(start_tick: int = 0, end_tick: int = 0, left_pos: int = 0, right_pos: int = 0, kind: int = 1, player_id: int = 0, long_point: int | None = None):
     long_point_val = [] if long_point is None else long_point
     result = {"type": "step", "start_tick": start_tick, "end_tick": end_tick, "left_pos": left_pos, "right_pos": right_pos, "kind": kind, "player_id": player_id, "long_point": long_point_val}
     add_dict_commons(result)
     return result
 
 
-def new_point_dict(tick = 0, left_pos = 0, right_pos = 0, left_end_pos = None, right_end_pos = None):
+def new_point_dict(tick: int = 0, left_pos: int = 0, right_pos: int = 0, left_end_pos: int | None = None, right_end_pos: int | None = None):
     result = {"type": "point", "tick": tick, "left_pos": left_pos, "right_pos": right_pos, "left_end_pos": left_end_pos, "right_end_pos": right_end_pos}
     add_dict_commons(result)
     return result
 
 
-def new_extend_dict(type_tag = "Vfx", tick = 0, time = 0, kind = "", layer_name = "", id_tag = 0, lane = 0, speed = 0, r = 0, g = 0, b = 0):
+def new_extend_dict(type_tag: str = "Vfx", tick: int = 0, time: int = 0, kind: str = "", layer_name: str = "", id_tag: int = 0, lane: int = 0, speed: int = 0, r: int = 0, g: int = 0, b: int = 0):
     result = {"type": type_tag, "tick": tick, "time": time, "kind": kind, "layer_name": layer_name, "id": id_tag, "lane": lane, "speed": speed, "r": r, "g": g, "b": b}
     add_dict_commons(result)
     return result
@@ -129,7 +129,7 @@ def new_chart() -> ChartRootXML:
 
 #Where 'element' is a bpm, measure, step, or point.
 #Element is added to the chart by default or removed from the chart (if it exists) if remove == True
-def update_chart(chart: ChartRootXML, element, remove = False, point_parent_step = None, return_elements = False) -> Optional[Union[Result|BaseXML]]:
+def update_chart(chart: ChartRootXML, element, remove = False, point_parent_step = None, return_elements = False) -> Result | BaseXML:
     if type(element) == StepXML:
         if remove:
             return chart.sequence_data.remove(element)

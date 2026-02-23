@@ -26,7 +26,7 @@ apiresults = {
     "INVALID_SESSION": "INVALID_SESSION",
 }
 
-def new_response(result = apiresults["UNDEFINED"], error_info = None, diff: list = None, steps: list = None, bpms: list = None, measures: list = None, session_ID = None, raw_chart = None):
+def new_response(result: Result = apiresults["UNDEFINED"], error_info: str | None = None, diff: list | None = None, steps: list | None = None, bpms: list | None = None, measures: list | None = None, session_ID: str | None = None, raw_chart: str | None = None):
     response = {"head": {"result": result}, "data": {}}
     if result not in apiresults:
         raise NameError("\"{}\" not found in apiresults.".format(result))
@@ -63,7 +63,7 @@ def new_response(result = apiresults["UNDEFINED"], error_info = None, diff: list
     return response 
 
 #Request reference, also useful for testing
-def new_request(function = "", data: dict = None, changes: list = None, filename = None, session_ID = None, raw_chart = None):
+def new_request(function: str = "", data: dict | None = None, changes: list | None = None, filename: str | None = None, session_ID: str | None = None, raw_chart: str | None = None):
     data = {} if data == None else data
     request = {"head": {"function": function}, "data": data }
 
@@ -134,6 +134,7 @@ def api():
         session_ID = head["id"]
     
     match head["function"]:
+        #Deprecated as of V3
         case "init":
             if "raw_chart" in data:
                 with open(data["filename"], "w") as newchart:
@@ -147,6 +148,7 @@ def api():
     
             return new_response(result = apiresults["SUCCESS"], session_ID = new_session.ID)
 
+        #Deprecated as of V3
         case "save":
             if session_ID:
                 result = _sessions[session_ID].save()
@@ -158,6 +160,7 @@ def api():
             else:
                 return new_response(result = apiresults["FAILED"], error_info = result.name)
 
+        #Deprecated as of V3
         case "close_session":
             if session_ID:
                 try:
@@ -169,6 +172,7 @@ def api():
             
             return new_response(result = apiresults["SUCCESS"])
     
+        #Deprecated as of V3
         case "update_chart":
             current_session = None
             if session_ID:
@@ -197,6 +201,7 @@ def api():
             
             return new_response(result = apiresults["SUCCESS"], diff = diff) 
    
+        #Deprecated as of V3
         case "get_steps":
             current_session = None
             if session_ID:
@@ -217,6 +222,7 @@ def api():
 
             return new_response(result = apiresults["SUCCESS"], steps = steps)
         
+        #Deprecated as of V3
         case "get_bpms":
             current_session = None
             if session_ID:
@@ -234,6 +240,7 @@ def api():
 
             return new_response(result = apiresults["SUCCESS"], bpms = bpms)
 
+        #Deprecated as of V3
         case "get_measures":
             current_session = None
             if session_ID:
@@ -251,6 +258,7 @@ def api():
 
             return new_response(result = apiresults["SUCCESS"], measures = measures)
 
+        #Deprecated as of V3
         #Note that at present this gets the chart _as it exists on disk_! You have to call to save it first!
         case "get_raw_chart":
             if session_ID not in _sessions:
@@ -259,12 +267,14 @@ def api():
             with open(_sessions[session_ID].path) as chart:
                 return new_response(result = apiresults["SUCCESS"], raw_chart = chart.read())
 
+        #Deprecated as of V3
         case "introspect_has_session":
             if _session is None and len(_sessions) == 0:
                 return new_response(result = apiresults["FALSE"])
             return new_response(result = apiresults["TRUE"])
 
         #parse a chart from file and return it as json dicts
+        #Current as of V3
         case "parse_chart":
             if "raw_chart" in data:
                 with open(TEMPFILE_XML, "w") as newchart:
@@ -288,6 +298,7 @@ def api():
             return new_response(result = apiresults["SUCCESS"], steps = steps, bpms = bpms, measures = measures)
 
         #process a full chart from dicts to xml. expects to find all dicts in 'changes', returns chart in 'raw_chart'
+        #Current as of V3
         case "process_to_xml":
             chartxml = ChartInstance(TEMPFILE_XML)
             for element in data["changes"]:

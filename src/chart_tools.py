@@ -9,32 +9,32 @@ def add_dict_commons(dictionary):
 
 #These functions return premade dict structures, use these to ensure correctness where dicts are made
 
-def new_bpm_info_dict(tick = 0, bpm = 0):
+def new_bpm_info_dict(tick: int = 0, bpm: int = 0) -> dict:
     result = {"type": "bpm_info", "tick": tick, "bpm": bpm}
     add_dict_commons(result)
     return result
 
 
-def new_measure_info_dict(tick = 0, num = 0, denomi = 0):
+def new_measure_info_dict(tick: int = 0, num: int = 0, denomi: int = 0) -> dict:
     result = {"type": "measure_info", "tick": tick, "num": num, "denomi": denomi}
     add_dict_commons(result)
     return result
 
 
-def new_step_dict(start_tick = 0, end_tick = 0, left_pos = 0, right_pos = 0, kind = 1, player_id = 0, long_point = None):
+def new_step_dict(start_tick: int = 0, end_tick: int = 0, left_pos: int = 0, right_pos: int = 0, kind: int = 1, player_id: int = 0, long_point: int | None = None) -> dict:
     long_point_val = [] if long_point is None else long_point
     result = {"type": "step", "start_tick": start_tick, "end_tick": end_tick, "left_pos": left_pos, "right_pos": right_pos, "kind": kind, "player_id": player_id, "long_point": long_point_val}
     add_dict_commons(result)
     return result
 
 
-def new_point_dict(tick = 0, left_pos = 0, right_pos = 0, left_end_pos = None, right_end_pos = None):
+def new_point_dict(tick: int = 0, left_pos: int = 0, right_pos: int = 0, left_end_pos: int | None = None, right_end_pos: int | None = None) -> dict:
     result = {"type": "point", "tick": tick, "left_pos": left_pos, "right_pos": right_pos, "left_end_pos": left_end_pos, "right_end_pos": right_end_pos}
     add_dict_commons(result)
     return result
 
 
-def new_extend_dict(type_tag = "Vfx", tick = 0, time = 0, kind = "", layer_name = "", id_tag = 0, lane = 0, speed = 0, r = 0, g = 0, b = 0):
+def new_extend_dict(type_tag: str = "Vfx", tick: int = 0, time: int = 0, kind: str = "", layer_name: str = "", id_tag: int = 0, lane: int = 0, speed: int = 0, r: int = 0, g: int = 0, b: int = 0) -> dict:
     result = {"type": type_tag, "tick": tick, "time": time, "kind": kind, "layer_name": layer_name, "id": id_tag, "lane": lane, "speed": speed, "r": r, "g": g, "b": b}
     add_dict_commons(result)
     return result
@@ -53,7 +53,7 @@ class verifydict:
 
 
 #For a chart element represented as a dict, receive it as an appropriate wrapper class instance from chart_xml_interface
-def object_from_dict(dictionary):
+def object_from_dict(dictionary: dict) -> BpmXML | MeasureXML | StepXML | PointXML:
     result = None
     
     if type(dictionary) != dict:
@@ -92,7 +92,7 @@ def object_from_dict(dictionary):
 
 
 #For a given chart element represented as a wrapper class instance, receive it as an appropriate dict
-def dict_from_object(classinstance):
+def dict_from_object(classinstance: BpmXML | MeasureXML | StepXML | PointXML) -> dict:
     class dummy:
         def __init__(self):
             pass
@@ -129,7 +129,7 @@ def new_chart() -> ChartRootXML:
 
 #Where 'element' is a bpm, measure, step, or point.
 #Element is added to the chart by default or removed from the chart (if it exists) if remove == True
-def update_chart(chart: ChartRootXML, element, remove = False, point_parent_step = None, return_elements = False) -> Optional[Union[Result|BaseXML]]:
+def update_chart(chart: ChartRootXML, element: BpmXML | MeasureXML | StepXML | PointXML, remove: bool = False, point_parent_step: StepXML = None, return_elements: bool = False) -> Result | BaseXML:
     if type(element) == StepXML:
         if remove:
             return chart.sequence_data.remove(element)
@@ -203,7 +203,8 @@ def update_chart(chart: ChartRootXML, element, remove = False, point_parent_step
         return element if return_elements else Result.SUCCESS
 
 
-def update_chart_diff(chart: ChartRootXML, element, remove = False, point_parent_step = None, diff = [], diff_as_dicts = True) -> Result:
+#Update the chart and return the diff
+def update_chart_diff(chart: ChartRootXML, element: BpmXML | MeasureXML | StepXML | PointXML, diff: list, remove: bool = False, point_parent_step: StepXML = None, diff_as_dicts: bool = True) -> Result:
     result = update_chart(chart, element, remove = remove, point_parent_step = point_parent_step, return_elements = True)
     
     #When the return_elements arg is True, update_chart returns the actual element that was added to indicate success

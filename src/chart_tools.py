@@ -203,7 +203,8 @@ def update_chart(chart: ChartRootXML, element: BpmXML | MeasureXML | StepXML | P
         return element if return_elements else Result.SUCCESS
 
 
-def update_chart_diff(chart: ChartRootXML, element, remove = False, point_parent_step = None, diff = [], diff_as_dicts = True) -> Result:
+#Update the chart and return the diff
+def update_chart_diff(chart: ChartRootXML, element: BpmXML | MeasureXML | StepXML | PointXML, diff: list, remove: bool = False, point_parent_step: StepXML = None, diff_as_dicts: bool = True) -> Result:
     result = update_chart(chart, element, remove = remove, point_parent_step = point_parent_step, return_elements = True)
     
     #When the return_elements arg is True, update_chart returns the actual element that was added to indicate success
